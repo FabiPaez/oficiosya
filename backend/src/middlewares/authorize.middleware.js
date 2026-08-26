@@ -23,9 +23,9 @@ export function authorize(...allowedRoles) {
         return next(error);
       }
 
-      const userRoles = data.map(
-        (item) => item.roles.name
-      );
+      const userRoles = data
+        .filter((item) => item.roles)
+        .map((item) => item.roles.name);
 
       const hasRole = allowedRoles.some(
         (role) => userRoles.includes(role)
@@ -34,7 +34,8 @@ export function authorize(...allowedRoles) {
       if (!hasRole) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permisos para realizar esta operación',
+          message:
+            'No tienes permisos para realizar esta operación',
         });
       }
 
