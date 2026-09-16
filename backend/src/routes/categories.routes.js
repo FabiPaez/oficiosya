@@ -12,6 +12,7 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorize } from '../middlewares/authorize.middleware.js';
 
 import { validate } from '../middlewares/validate.middleware.js';
+import { optionalAuthenticate } from '../middlewares/optional-auth.middleware.js';
 
 import {
   createCategorySchema,
@@ -23,6 +24,7 @@ const router = Router();
 // Público
 router.get(
   '/',
+  optionalAuthenticate,
   getCategoriesController
 );
 

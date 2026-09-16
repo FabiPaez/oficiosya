@@ -44,3 +44,27 @@ describe('POST /api/auth/register', () => {
     expect(response.body.success).toBe(false);
   });
 });
+
+describe('POST /api/auth/login - prueba de autenticación', () => {
+  test('debe iniciar sesión correctamente con un usuario válido', async () => {
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'admin@oficiosya.com',
+        password: 'Admin1234!',
+      });
+
+    console.log('LOGIN TEST:', {
+      status: response.statusCode,
+      success: response.body.success,
+      hasAccessToken:
+        !!response.body.data?.session?.access_token,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(
+      response.body.data.session.access_token
+    ).toBeDefined();
+  });
+});
