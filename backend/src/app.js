@@ -9,6 +9,8 @@ import providersRoutes from './routes/providers.routes.js';
 import servicesRoutes from './routes/services.routes.js';
 import providerServicesRoutes from './routes/provider-services.routes.js';
 import serviceRequestsRoutes from './routes/service-requests.routes.js';
+import reviewsRoutes from './routes/reviews.routes.js';
+import favoritesRoutes from './routes/favorites.routes.js';
 
 import { errorMiddleware } from './middlewares/error.middleware.js';
 
@@ -40,6 +42,10 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/provider-services', providerServicesRoutes);
 
 app.use('/api/service-requests', serviceRequestsRoutes);
+
+app.use('/api/reviews', reviewsRoutes);
+
+app.use('/api/favorites', favoritesRoutes);
 
 app.use(errorMiddleware);
 

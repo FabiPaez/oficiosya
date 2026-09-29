@@ -100,3 +100,34 @@ export async function deleteServiceRequestsByIds(ids) {
     console.error('Error al limpiar service_requests en db-cleanup:', error);
   }
 }
+
+//función para eliminar reviews creados por ID
+export async function deleteReviewsByIds(ids) {
+  if (!ids || ids.length === 0) return;
+
+  const { error } = await supabaseAdmin
+    .from('reviews')
+    .delete()
+    .in('id', ids);
+
+  if (error) {
+    console.error('Error al limpiar reviews en db-cleanup:', error);
+  }
+}
+
+//función para eliminar favoritos creados por relacion usuario-provider
+export async function deleteFavoritesByUserAndProviders(relations) {
+  if (!relations || relations.length === 0) return;
+
+  for (const rel of relations) {
+    const { error } = await supabaseAdmin
+      .from('favorites')
+      .delete()
+      .eq('user_id', rel.userId)
+      .eq('provider_id', rel.providerId);
+
+    if (error) {
+      console.error('Error al limpiar favorites en db-cleanup:', error);
+    }
+  }
+}
