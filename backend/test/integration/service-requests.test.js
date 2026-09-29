@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import request from 'supertest';
 import app from '../../src/app.js';
 import { getAdminToken, getClientToken } from '../helpers/auth.helper.js';
@@ -7,9 +8,50 @@ import {
   removeProviderRoleByUserIds,
 } from '../helpers/db-cleanup.helper.js';
 
+jest.setTimeout(30000);
+
 let createdRequestIds = [];
 let testServiceId;
 let testProviderId;
+let clientToken;
+let adminToken;
+let weAssignedProviderRole = false;
+
+beforeAll(async () => {
+  clientToken = await getClientToken();
+  adminToken = await getAdminToken();
+
+  // 1. Obtener ID del ADMIN mediante su perfil
+  const adminProfileRes = await request(app)
+    .get('/api/profiles/me')
+    .set('Authorization', `Bearer ${adminToken}`);
+
+  testProviderId = adminProfileRes.body.data.id;
+
+  // 2. Asegurar que ADMIN esté registrado como prestador si aún no lo está
+  const providerRes = await request(app)
+    .post('/api/providers/register')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      description: 'Prestador asignado para recibir solicitudes de prueba',
+      city: 'San José de Jáchal',
+    });
+
+  if (providerRes.statusCode === 201) {
+    weAssignedProviderRole = true;
+  }
+
+  // 3. Crear servicio de prueba base
+  const serviceRes = await request(app)
+    .post('/api/services')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      categoryId: 1,
+      name: `Servicio Solicitudes ${Date.now()}`,
+    });
+
+  testServiceId = serviceRes.body.data.id;
+});
 
 afterEach(async () => {
   await deleteServiceRequestsByIds(createdRequestIds);
@@ -20,40 +62,12 @@ afterAll(async () => {
   if (testServiceId) {
     await deleteServicesByIds([testServiceId]);
   }
-  if (testProviderId) {
+  if (testProviderId && weAssignedProviderRole) {
     await removeProviderRoleByUserIds([testProviderId]);
   }
 });
 
 describe('POST /api/service-requests', () => {
-  let clientToken;
-  let adminToken;
-
-  beforeAll(async () => {
-    clientToken = await getClientToken();
-    adminToken = await getAdminToken();
-
-    // 1. Crear un servicio base con ADMIN
-    const serviceRes = await request(app)
-      .post('/api/services')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        categoryId: 1,
-        name: `Servicio Solicitudes ${Date.now()}`,
-      });
-    testServiceId = serviceRes.body.data.id;
-
-    // 2. Registrar al ADMIN como prestador para que el CLIENT pueda solicitarle
-    const providerRes = await request(app)
-      .post('/api/providers/register')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        description: 'Prestador asignado para recibir solicitudes de prueba',
-        city: 'San José de Jáchal',
-      });
-    testProviderId = providerRes.body.data.id;
-  });
-
   test('debe devolver 401 si no se envía token', async () => {
     const response = await request(app)
       .post('/api/service-requests')
@@ -99,7 +113,7 @@ describe('POST /api/service-requests', () => {
       .send({
         providerId: testProviderId,
         serviceId: testServiceId,
-        title: 'No', // Título menor a 3 caracteres
+        title: 'No',
         description: 'Corto',
       });
 
@@ -112,7 +126,7 @@ describe('POST /api/service-requests', () => {
   test('debe devolver 400 si el usuario intenta solicitarse un servicio a sí mismo', async () => {
     const response = await request(app)
       .post('/api/service-requests')
-      .set('Authorization', `Bearer ${adminToken}`) // El emisor es el mismo provider
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({
         providerId: testProviderId,
         serviceId: testServiceId,
@@ -143,14 +157,6 @@ describe('POST /api/service-requests', () => {
 });
 
 describe('GET /api/service-requests/me', () => {
-  let clientToken;
-  let adminToken;
-
-  beforeAll(async () => {
-    clientToken = await getClientToken();
-    adminToken = await getAdminToken();
-  });
-
   test('debe listar las solicitudes creadas por el cliente (200)', async () => {
     const createRes = await request(app)
       .post('/api/service-requests')
@@ -176,12 +182,6 @@ describe('GET /api/service-requests/me', () => {
 });
 
 describe('GET /api/service-requests/:id', () => {
-  let clientToken;
-
-  beforeAll(async () => {
-    clientToken = await getClientToken();
-  });
-
   test('debe devolver 404 si la solicitud no existe', async () => {
     const response = await request(app)
       .get('/api/service-requests/99999')
@@ -219,12 +219,6 @@ describe('GET /api/service-requests/:id', () => {
 });
 
 describe('PATCH /api/service-requests/:id/status', () => {
-  let clientToken;
-
-  beforeAll(async () => {
-    clientToken = await getClientToken();
-  });
-
   test('debe permitir al cliente cancelar una solicitud en estado PENDING (200)', async () => {
     const createRes = await request(app)
       .post('/api/service-requests')

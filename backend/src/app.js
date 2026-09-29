@@ -14,6 +14,9 @@ import favoritesRoutes from './routes/favorites.routes.js';
 
 import { errorMiddleware } from './middlewares/error.middleware.js';
 
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
+
 const app = express();
 
 app.use(helmet());
@@ -48,5 +51,7 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/favorites', favoritesRoutes);
 
 app.use(errorMiddleware);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export default app;
