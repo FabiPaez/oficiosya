@@ -1,9 +1,17 @@
+import CategoryPreview from '../components/home/CategoryPreview'
+import FeaturedWorkers from '../components/home/FeaturedWorkers'
+import HeroSection from '../components/home/HeroSection'
+import HowItWorks from '../components/home/HowItWorks'
+
 function HomePage() {
-    return (
-      <main>
-        <h1>OficiosYa — Inicio</h1>
-      </main>
-    )
-  }
-  
-  export default HomePage
+  return (
+    <>
+      <HeroSection />
+      <CategoryPreview />
+      <FeaturedWorkers />
+      <HowItWorks />
+    </>
+  )
+}
+
+export default HomePage
