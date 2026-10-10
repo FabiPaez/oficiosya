@@ -46,6 +46,18 @@ function WorkerPage() {
 
         setWorker(result)
 
+        if (user && result) {
+          const favorite =
+            await favoriteService.isFavorite(
+              user.id,
+              result.id,
+            )
+
+          setIsFavorite(favorite)
+        } else {
+          setIsFavorite(false)
+        }
+
         if (!result) {
           setReviews([])
           setReviewsLoading(false)
@@ -74,7 +86,26 @@ function WorkerPage() {
     }
 
     void loadWorker()
-  }, [id])
+  }, [id, user])
+
+  useEffect(() => {
+    async function loadFavoriteState() {
+      if (!user || !worker) {
+        setIsFavorite(false)
+        return
+      }
+
+      const favorite =
+        await favoriteService.isFavorite(
+          user.id,
+          worker.id,
+        )
+
+      setIsFavorite(favorite)
+    }
+
+    void loadFavoriteState()
+  }, [user, worker])
 
   async function handleFavorite() {
     if (!user || !worker || favoriteLoading) {

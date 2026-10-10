@@ -1,9 +1,1189 @@
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { categoryService } from '../services/categoryService'
+import type { Category } from '../types/category'
+
+const registrationSteps = [
+  {
+    title: 'Datos personales',
+    description: 'Completá tus datos básicos.',
+  },
+  {
+    title: 'Categorías',
+    description: 'Elegí los servicios que ofrecés.',
+  },
+  {
+    title: 'Presentación',
+    description: 'Contá qué servicios brindás y tu experiencia.',
+  },
+  {
+    title: 'Contacto y cobertura',
+    description: 'Indicá cómo contactarte y dónde trabajás.',
+  },
+  {
+    title: 'Imágenes',
+    description: 'Agregá tu foto de perfil y trabajos realizados.',
+  },
+  {
+    title: 'Confirmación',
+    description: 'Revisá los datos antes de finalizar.',
+  },
+]
+
+interface WorkerRegistrationDraft {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  whatsapp: string
+  department: string
+  categories: string[]
+  description: string
+  experienceYears: string
+  coverage: 'SOLO CENTRO' | 'RURAL' | 'CENTRO + RURAL'
+  zones: string[]
+  photoUrl: string
+  workPhotoUrls: string[]
+}
+
 function WorkerRegisterPage() {
-    return (
-      <main>
-        <h1>Registro de trabajador</h1>
-      </main>
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  const [currentStep, setCurrentStep] = useState(0)
+
+  const [draft, setDraft] = useState<WorkerRegistrationDraft>(() => ({
+    firstName: user?.firstName ?? '',
+    lastName: user?.lastName ?? '',
+    email: user?.email ?? '',
+    phone: user?.phone ?? '',
+    department: user?.department || 'Jáchal',
+    categories: [],
+    description: '',
+    experienceYears: '',
+    whatsapp: user?.phone ?? '',
+    coverage: 'SOLO CENTRO',
+    zones: ['Centro'],
+    photoUrl: '',
+    workPhotoUrls: [],
+  }))
+
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof WorkerRegistrationDraft, string>>
+  >({})
+
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [categoriesLoadError, setCategoriesLoadError] = useState(false)
+  const [categoryValidationError, setCategoryValidationError] = useState('')
+
+  const [presentationErrors, setPresentationErrors] = useState<{
+    description?: string
+    experienceYears?: string
+  }>({})
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCategories() {
+      setCategoriesLoading(true)
+      setCategoriesLoadError(false)
+
+      try {
+        const categories = await categoryService.getAll()
+
+        if (!cancelled) {
+          setAvailableCategories(categories)
+        }
+      } catch {
+        if (!cancelled) {
+          setCategoriesLoadError(true)
+        }
+      } finally {
+        if (!cancelled) {
+          setCategoriesLoading(false)
+        }
+      }
+    }
+
+    void loadCategories()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const progress =
+    ((currentStep + 1) / registrationSteps.length) * 100
+
+  function handleChange(
+    event: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) {
+    const { name, value } = event.target
+    const field = name as keyof WorkerRegistrationDraft
+
+    setDraft((previous) => ({
+      ...previous,
+      [field]: value,
+    }))
+
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+    }))
+
+    if (field === 'description' || field === 'experienceYears') {
+      setPresentationErrors((previous) => ({
+        ...previous,
+        [field]: undefined,
+      }))
+    }
+  }
+
+  function normalizeExperienceYears(value: string): string {
+    if (value === '+40') {
+      return '+40'
+    }
+
+    if (!/^\d+$/.test(value)) {
+      return value
+    }
+
+    const years = Number(value)
+
+    if (years >= 41 && years <= 90) {
+      return '+40'
+    }
+
+    return value
+  }
+
+
+  function validatePresentation(): boolean {
+    const nextErrors: {
+      description?: string
+      experienceYears?: string
+    } = {}
+
+    const description = draft.description.trim()
+    const experience = draft.experienceYears.trim()
+
+    // La descripción es opcional. Si se completa,
+    // no puede superar los 600 caracteres.
+    if (description.length > 600) {
+      nextErrors.description =
+        'La descripción no puede superar los 600 caracteres.'
+    }
+
+    // Los años de experiencia siguen siendo obligatorios.
+    if (!experience) {
+      nextErrors.experienceYears =
+        'Seleccioná tus años de experiencia.'
+    } else if (experience !== '+40') {
+      if (!/^\d+$/.test(experience)) {
+        nextErrors.experienceYears =
+          'Seleccioná un número entero válido.'
+      } else {
+        const years = Number(experience)
+
+        if (years < 0 || years > 40) {
+          nextErrors.experienceYears =
+            'Seleccioná entre 0 y 40 años, o +40 años.'
+        }
+      }
+    }
+
+    setPresentationErrors(nextErrors)
+
+    return Object.keys(nextErrors).length === 0
+  }
+
+  function validateContactCoverage(): boolean {
+    const nextErrors: Partial<
+      Record<keyof WorkerRegistrationDraft, string>
+    > = {}
+
+    if (!draft.phone.trim()) {
+      nextErrors.phone = 'Ingresá un teléfono de contacto.'
+    }
+
+    if (!draft.whatsapp.trim()) {
+      nextErrors.whatsapp = 'Ingresá un número de WhatsApp.'
+    }
+
+    setErrors((previous) => ({
+      ...previous,
+      phone: nextErrors.phone,
+      whatsapp: nextErrors.whatsapp,
+    }))
+
+    return !nextErrors.phone && !nextErrors.whatsapp
+  }
+
+  function validatePersonalData(): boolean {
+    const nextErrors: Partial<
+      Record<keyof WorkerRegistrationDraft, string>
+    > = {}
+
+    if (!draft.firstName.trim()) {
+      nextErrors.firstName = 'Ingresá tu nombre.'
+    }
+
+    if (!draft.lastName.trim()) {
+      nextErrors.lastName = 'Ingresá tu apellido.'
+    }
+
+    if (!draft.email.trim()) {
+      nextErrors.email = 'Ingresá tu correo electrónico.'
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email.trim())
+    ) {
+      nextErrors.email = 'Ingresá un correo electrónico válido.'
+    }
+
+    if (!draft.phone.trim()) {
+      nextErrors.phone = 'Ingresá un teléfono de contacto.'
+    }
+
+    if (!draft.department) {
+      nextErrors.department = 'Seleccioná un departamento.'
+    }
+
+    setErrors(nextErrors)
+
+    return Object.keys(nextErrors).length === 0
+  }
+
+  function handleSubmitPersonalData(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+
+    if (!validatePersonalData()) {
+      return
+    }
+
+    setCurrentStep(1)
+  }
+
+  function handleCategoryToggle(categoryId: string) {
+    setDraft((previous) => {
+      const isSelected = previous.categories.includes(categoryId)
+
+      return {
+        ...previous,
+        categories: isSelected
+          ? previous.categories.filter((id) => id !== categoryId)
+          : [...previous.categories, categoryId],
+      }
+    })
+
+    setCategoryValidationError('')
+  }
+
+  function handleCoverageChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const coverage = event.target.value as WorkerRegistrationDraft['coverage']
+
+    const zones =
+      coverage === 'SOLO CENTRO'
+        ? ['Centro']
+        : coverage === 'RURAL'
+          ? ['Rural']
+          : ['Centro', 'Rural']
+
+    setDraft((previous) => ({
+      ...previous,
+      coverage,
+      zones,
+    }))
+
+    setErrors((previous) => ({
+      ...previous,
+      zones: undefined,
+    }))
+  }
+
+
+  function handleProfilePhotoChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      window.alert('Seleccioná un archivo de imagen válido.')
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      window.alert('La foto de perfil no puede superar los 5 MB.')
+      event.target.value = ''
+      return
+    }
+
+    setDraft((previous) => ({
+      ...previous,
+      photoUrl: URL.createObjectURL(file),
+    }))
+  }
+
+  function handleWorkPhotosChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const files = Array.from(event.target.files ?? [])
+
+    if (files.length === 0) {
+      return
+    }
+
+    if (files.some((file) => !file.type.startsWith('image/'))) {
+      window.alert('Todos los archivos seleccionados deben ser imágenes.')
+      event.target.value = ''
+      return
+    }
+
+    if (files.some((file) => file.size > 5 * 1024 * 1024)) {
+      window.alert('Cada imagen debe pesar como máximo 5 MB.')
+      event.target.value = ''
+      return
+    }
+
+    if (files.length + draft.workPhotoUrls.length > 5) {
+      window.alert('Podés agregar hasta 5 fotos de tus trabajos.')
+      event.target.value = ''
+      return
+    }
+
+    const newUrls = files.map((file) => URL.createObjectURL(file))
+
+    setDraft((previous) => ({
+      ...previous,
+      workPhotoUrls: [...previous.workPhotoUrls, ...newUrls],
+    }))
+
+    event.target.value = ''
+  }
+
+  function handleRemoveWorkPhoto(photoUrl: string) {
+    URL.revokeObjectURL(photoUrl)
+
+    setDraft((previous) => ({
+      ...previous,
+      workPhotoUrls: previous.workPhotoUrls.filter(
+        (url) => url !== photoUrl,
+      ),
+    }))
+  }
+
+  function handleRemoveProfilePhoto() {
+    if (draft.photoUrl) {
+      URL.revokeObjectURL(draft.photoUrl)
+    }
+
+    setDraft((previous) => ({
+      ...previous,
+      photoUrl: '',
+    }))
+  }
+
+  function handleSubmitPresentation(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+
+    if (!validatePresentation()) {
+      return
+    }
+
+    setCurrentStep(3)
+  }
+
+  function handleSubmitContactCoverage(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+
+    if (!validateContactCoverage()) {
+      return
+    }
+
+    setCurrentStep(4)
+  }
+
+  function handleNext() {
+    if (currentStep === 0) {
+      return
+    }
+
+    if (currentStep === 1) {
+      if (categoriesLoading || categoriesLoadError) {
+        return
+      }
+
+      if (draft.categories.length === 0) {
+        setCategoryValidationError(
+          'Seleccioná al menos una categoría para continuar.',
+        )
+        return
+      }
+    }
+
+    setCurrentStep((step) =>
+      Math.min(step + 1, registrationSteps.length - 1),
     )
   }
-  
-  export default WorkerRegisterPage
+
+  function handlePrevious() {
+    setCurrentStep((step) => Math.max(step - 1, 0))
+  }
+
+  function handleCancel() {
+    const confirmed = window.confirm(
+      '¿Querés cancelar el registro? Se perderán los cambios de este formulario.',
+    )
+
+    if (confirmed) {
+      navigate('/mi-perfil')
+    }
+  }
+
+  return (
+    <main className="provider-registration">
+      <header className="provider-registration__header">
+        <span className="provider-registration__eyebrow">
+          REGISTRO DE TRABAJADOR
+        </span>
+
+        <h1>Creá tu perfil profesional</h1>
+
+        <p>
+          Completá los pasos para presentar tus servicios en OficiosYa.
+        </p>
+      </header>
+
+      <section
+        className="provider-registration__progress"
+        aria-label="Progreso del registro"
+      >
+        <div className="provider-registration__progress-label">
+          <span>
+            Paso {currentStep + 1} de {registrationSteps.length}
+          </span>
+          <span>{Math.round(progress)}%</span>
+        </div>
+
+        <div
+          className="provider-registration__progress-track"
+          role="progressbar"
+          aria-valuenow={Math.round(progress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Progreso del registro"
+        >
+          <div
+            className="provider-registration__progress-fill"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </section>
+
+      <nav
+        className="provider-registration__steps"
+        aria-label="Pasos del registro"
+      >
+        {registrationSteps.map((step, index) => (
+          <div
+            key={step.title}
+            className={`provider-registration__step ${index === currentStep
+              ? 'provider-registration__step--active'
+              : ''
+              } ${index < currentStep
+                ? 'provider-registration__step--completed'
+                : ''
+              }`}
+            aria-current={index === currentStep ? 'step' : undefined}
+          >
+            <span className="provider-registration__step-number">
+              {index < currentStep ? '✓' : index + 1}
+            </span>
+
+            <span className="provider-registration__step-title">
+              {step.title}
+            </span>
+          </div>
+        ))}
+      </nav>
+
+      <section className="provider-registration__content">
+        <div className="provider-registration__content-heading">
+          <h2>{registrationSteps[currentStep].title}</h2>
+          <p>{registrationSteps[currentStep].description}</p>
+        </div>
+
+        {currentStep === 0 && (
+          <form
+            className="provider-registration__form"
+            onSubmit={handleSubmitPersonalData}
+            noValidate
+          >
+            <div className="provider-registration__field">
+              <label htmlFor="firstName">Nombre</label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                autoComplete="given-name"
+                value={draft.firstName}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.firstName)}
+                aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+                required
+              />
+              {errors.firstName && (
+                <p id="firstName-error" className="provider-registration__error">
+                  {errors.firstName}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__field">
+              <label htmlFor="lastName">Apellido</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                autoComplete="family-name"
+                value={draft.lastName}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.lastName)}
+                aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+                required
+              />
+              {errors.lastName && (
+                <p id="lastName-error" className="provider-registration__error">
+                  {errors.lastName}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__field">
+              <label htmlFor="email">Correo electrónico</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={draft.email}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                required
+              />
+              {errors.email && (
+                <p id="email-error" className="provider-registration__error">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__field">
+              <label htmlFor="phone">Teléfono de contacto</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="Ej.: 264 123 4567"
+                value={draft.phone}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? 'phone-error' : undefined}
+                required
+              />
+              {errors.phone && (
+                <p id="phone-error" className="provider-registration__error">
+                  {errors.phone}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__field">
+              <label htmlFor="department">Departamento</label>
+              <select
+                id="department"
+                name="department"
+                value={draft.department}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.department)}
+                aria-describedby={
+                  errors.department ? 'department-error' : undefined
+                }
+                required
+              >
+                <option value="">Seleccioná un departamento</option>
+                <option value="Jáchal">Jáchal</option>
+                <option value="Iglesia">Iglesia</option>
+                <option value="Otro">Otro departamento</option>
+              </select>
+              {errors.department && (
+                <p id="department-error" className="provider-registration__error">
+                  {errors.department}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__actions">
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--primary"
+                type="submit"
+              >
+                Continuar
+              </button>
+            </div>
+          </form>
+        )}
+
+        {currentStep === 1 && (
+          <div className="provider-registration__category-section">
+            <p>
+              Seleccioná todas las categorías en las que ofrecés servicios.
+              Podés elegir más de una.
+            </p>
+
+            {categoriesLoading && (
+              <p role="status">Cargando categorías...</p>
+            )}
+
+            {!categoriesLoading && categoriesLoadError && (
+              <div className="provider-registration__category-message" role="alert">
+                <p>
+                  No pudimos cargar las categorías. Revisá la conexión e
+                  intentá nuevamente.
+                </p>
+                <button
+                  className="provider-registration__button provider-registration__button--secondary"
+                  type="button"
+                  onClick={() => window.location.reload()}
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
+
+            {!categoriesLoading &&
+              !categoriesLoadError &&
+              availableCategories.length === 0 && (
+                <p role="status">
+                  No hay categorías activas disponibles en este momento.
+                </p>
+              )}
+
+            {!categoriesLoading &&
+              !categoriesLoadError &&
+              availableCategories.length > 0 && (
+                <div className="provider-registration__category-grid">
+                  {availableCategories.map((category) => {
+                    const selected = draft.categories.includes(category.id)
+
+                    return (
+                      <label
+                        key={category.id}
+                        className={`provider-registration__category-option ${selected
+                          ? 'provider-registration__category-option--selected'
+                          : ''
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => handleCategoryToggle(category.id)}
+                        />
+
+                        <span className="provider-registration__category-name">
+                          {category.name}
+                        </span>
+
+                        {category.description && (
+                          <span className="provider-registration__category-description">
+                            {category.description}
+                          </span>
+                        )}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+            <p className="provider-registration__selected-count">
+              Categorías seleccionadas: {draft.categories.length}
+            </p>
+
+            {categoryValidationError && (
+              <p className="provider-registration__error" role="alert">
+                {categoryValidationError}
+              </p>
+            )}
+
+            <div className="provider-registration__actions">
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handlePrevious}
+              >
+                Anterior
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--primary"
+                type="button"
+                onClick={handleNext}
+                disabled={
+                  categoriesLoading ||
+                  categoriesLoadError ||
+                  availableCategories.length === 0
+                }
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <form
+            className="provider-registration__form"
+            onSubmit={handleSubmitPresentation}
+            noValidate
+          >
+            <div className="provider-registration__field">
+              <label htmlFor="description">
+                Descripción de tus servicios
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={6}
+                maxLength={600}
+                placeholder="Contá qué trabajos realizás, cuáles son tus especialidades y qué pueden esperar tus clientes."
+                value={draft.description}
+                onChange={handleChange}
+                aria-invalid={Boolean(presentationErrors.description)}
+                aria-describedby={
+                  presentationErrors.description
+                    ? 'description-error description-count'
+                    : 'description-count'
+                }
+                required
+              />
+
+              <div className="provider-registration__character-count">
+                <span id="description-count">
+                  {draft.description.length}/600 caracteres
+                </span>
+              </div>
+
+              {presentationErrors.description && (
+                <p
+                  id="description-error"
+                  className="provider-registration__error"
+                  role="alert"
+                >
+                  {presentationErrors.description}
+                </p>
+              )}
+            </div>
+
+
+            <div className="provider-registration__field">
+              <label htmlFor="experienceYears">
+                Años de experiencia
+              </label>
+
+              <select
+                id="experienceYears"
+                name="experienceYears"
+                value={draft.experienceYears}
+                onChange={(event) => {
+                  const value = normalizeExperienceYears(event.target.value)
+
+                  setDraft((previous) => ({
+                    ...previous,
+                    experienceYears: value,
+                  }))
+
+                  setPresentationErrors((previous) => ({
+                    ...previous,
+                    experienceYears: undefined,
+                  }))
+                }}
+                aria-invalid={Boolean(presentationErrors.experienceYears)}
+                aria-describedby={
+                  presentationErrors.experienceYears
+                    ? 'experienceYears-help experienceYears-error'
+                    : 'experienceYears-help'
+                }
+                required
+              >
+                <option value="">Seleccioná tus años de experiencia</option>
+
+                {Array.from({ length: 41 }, (_, years) => (
+                  <option key={years} value={String(years)}>
+                    {years} {years === 1 ? 'año' : 'años'}
+                  </option>
+                ))}
+
+                <option value="+40">+40 años</option>
+              </select>
+
+              <p
+                id="experienceYears-help"
+                className="provider-registration__field-help"
+              >
+                Seleccioná una opción. Si tenés más de 40 años de experiencia,
+                elegí +40 años.
+              </p>
+
+
+              {presentationErrors.experienceYears && (
+                <p
+                  id="experienceYears-error"
+                  className="provider-registration__error"
+                  role="alert"
+                >
+                  {presentationErrors.experienceYears}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__actions">
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handlePrevious}
+              >
+                Anterior
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--primary"
+                type="submit"
+              >
+                Continuar
+              </button>
+            </div>
+          </form>
+        )}
+
+        {currentStep === 3 && (
+          <form
+            className="provider-registration__form"
+            onSubmit={handleSubmitContactCoverage}
+            noValidate
+          >
+            <div className="provider-registration__field">
+              <label htmlFor="phone">
+                Teléfono de contacto
+              </label>
+
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="Ej.: 264 123 4567"
+                value={draft.phone}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? 'contact-phone-error' : undefined}
+                required
+              />
+
+              {errors.phone && (
+                <p
+                  id="contact-phone-error"
+                  className="provider-registration__error"
+                  role="alert"
+                >
+                  {errors.phone}
+                </p>
+              )}
+            </div>
+
+            <div className="provider-registration__field">
+              <label htmlFor="whatsapp">
+                Número de WhatsApp
+              </label>
+
+              <input
+                id="whatsapp"
+                name="whatsapp"
+                type="tel"
+                autoComplete="tel"
+                placeholder="Ej.: 264 123 4567"
+                value={draft.whatsapp}
+                onChange={handleChange}
+                aria-invalid={Boolean(errors.whatsapp)}
+                aria-describedby={
+                  errors.whatsapp ? 'whatsapp-error' : undefined
+                }
+                required
+              />
+
+              {errors.whatsapp && (
+                <p
+                  id="whatsapp-error"
+                  className="provider-registration__error"
+                  role="alert"
+                >
+                  {errors.whatsapp}
+                </p>
+              )}
+            </div>
+
+            <fieldset className="provider-registration__coverage">
+              <legend>¿En qué zonas de Jáchal trabajás?</legend>
+
+              <label>
+                <input
+                  type="radio"
+                  name="coverage"
+                  value="SOLO CENTRO"
+                  checked={draft.coverage === 'SOLO CENTRO'}
+                  onChange={handleCoverageChange}
+                />
+                <span>Jáchal Centro</span>
+              </label>
+
+              <label>
+                <input
+                  type="radio"
+                  name="coverage"
+                  value="RURAL"
+                  checked={draft.coverage === 'RURAL'}
+                  onChange={handleCoverageChange}
+                />
+                <span>Zonas rurales de Jáchal</span>
+              </label>
+
+              <label>
+                <input
+                  type="radio"
+                  name="coverage"
+                  value="CENTRO + RURAL"
+                  checked={draft.coverage === 'CENTRO + RURAL'}
+                  onChange={handleCoverageChange}
+                />
+                <span>Centro y zonas rurales</span>
+              </label>
+            </fieldset>
+
+            <p className="provider-registration__field-help">
+              La cobertura se limita al departamento de Jáchal.
+            </p>
+
+            <div className="provider-registration__actions">
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handlePrevious}
+              >
+                Anterior
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--primary"
+                type="submit"
+              >
+                Continuar
+              </button>
+            </div>
+          </form>
+        )}
+
+
+        {currentStep === 4 && (
+          <section className="provider-registration__images">
+            <div className="provider-registration__field">
+              <label htmlFor="profilePhoto">
+                Foto de perfil (opcional)
+              </label>
+
+              <p className="provider-registration__field-help">
+                Elegí una imagen que permita a tus clientes reconocerte.
+                Tamaño máximo: 5 MB.
+              </p>
+
+              <input
+                id="profilePhoto"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePhotoChange}
+              />
+
+              {draft.photoUrl && (
+                <div className="provider-registration__image-preview">
+                  <img
+                    src={draft.photoUrl}
+                    alt="Vista previa de la foto de perfil"
+                  />
+
+                  <button
+                    type="button"
+                    className="provider-registration__button provider-registration__button--secondary"
+                    onClick={handleRemoveProfilePhoto}
+                  >
+                    Quitar foto
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="provider-registration__field">
+              <label htmlFor="workPhotos">
+                Fotos de trabajos realizados (opcional)
+              </label>
+
+              <p className="provider-registration__field-help">
+                Podés seleccionar varias imágenes, con un máximo de 5
+                fotos en total. Cada imagen puede pesar hasta 5 MB.
+              </p>
+
+              <input
+                id="workPhotos"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleWorkPhotosChange}
+              />
+
+              {draft.workPhotoUrls.length > 0 && (
+                <div className="provider-registration__work-gallery">
+                  {draft.workPhotoUrls.map((photoUrl, index) => (
+                    <div
+                      className="provider-registration__image-preview"
+                      key={photoUrl}
+                    >
+                      <img
+                        src={photoUrl}
+                        alt={`Trabajo realizado ${index + 1}`}
+                      />
+
+                      <button
+                        type="button"
+                        className="provider-registration__button provider-registration__button--secondary"
+                        onClick={() => handleRemoveWorkPhoto(photoUrl)}
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="provider-registration__actions">
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handlePrevious}
+              >
+                Anterior
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--primary"
+                type="button"
+                onClick={handleNext}
+              >
+                Continuar
+              </button>
+            </div>
+          </section>
+        )}
+
+        {currentStep === 5 && (
+          <div className="provider-registration__placeholder">
+            <p>
+              El paso de confirmación se implementará en el siguiente
+              paso de desarrollo.
+            </p>
+
+            <div className="provider-registration__actions">
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+
+              <button
+                className="provider-registration__button provider-registration__button--secondary"
+                type="button"
+                onClick={handlePrevious}
+              >
+                Anterior
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+    </main>
+  )
+}
+
+export default WorkerRegisterPage

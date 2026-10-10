@@ -1,16 +1,55 @@
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+
 function Navbar() {
-    return (
-      <nav>
-        <a href="/">OficiosYa</a>
-  
-        <div>
-          <a href="/buscar">Buscar</a>
-          <a href="/categorias">Categorías</a>
-          <a href="/registro">Registrarme</a>
-          <a href="/login">Iniciar sesión</a>
-        </div>
-      </nav>
-    )
+  const navigate = useNavigate()
+  const { isAuthenticated, logoutMock } = useAuth()
+
+  function handleLogout() {
+    logoutMock()
+    navigate('/')
   }
-  
-  export default Navbar
+
+  return (
+    <header className="navbar">
+      <div className="container navbar-inner">
+        <Link to="/" className="navbar-brand">
+          OficiosYa
+        </Link>
+
+        <nav
+          className="navbar-nav"
+          aria-label="Navegación principal"
+        >
+          <Link to="/buscar">Buscar</Link>
+
+          <Link to="/categorias">Categorías</Link>
+
+          {!isAuthenticated && (
+            <>
+              <Link to="/registro">Registrarme</Link>
+
+              <Link to="/login">Iniciar sesión</Link>
+            </>
+          )}
+
+          {isAuthenticated && (
+            <>
+              <Link to="/mi-perfil">Mi perfil</Link>
+
+              <button
+                type="button"
+                className="navbar-logout"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </button>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
+  )
+}
+
+export default Navbar

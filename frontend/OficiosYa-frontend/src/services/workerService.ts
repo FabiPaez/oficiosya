@@ -1,7 +1,13 @@
+
 import { mockWorkers } from '../data/mockWorkers'
 import type { Worker } from '../types/worker'
 import type { WorkerSearchFilters } from '../types/search'
 import { normalizeText } from '../utils/normalizeText'
+
+export type CreateMockWorkerData = Omit<
+  Worker,
+  'id' | 'ratingAverage' | 'reviewCount' | 'premium' | 'active'
+>
 
 export const workerService = {
   async getAll(): Promise<Worker[]> {
@@ -67,5 +73,20 @@ export const workerService = {
     })
 
     return Promise.resolve(workers)
+  },
+
+  async createMock(data: CreateMockWorkerData): Promise<Worker> {
+    const worker: Worker = {
+      ...data,
+      id: `worker-${Date.now()}`,
+      ratingAverage: 0,
+      reviewCount: 0,
+      premium: false,
+      active: true,
+    }
+
+    mockWorkers.push(worker)
+
+    return Promise.resolve(worker)
   },
 }
