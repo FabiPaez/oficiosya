@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
-export async function findAllServices({ categoryId, includeInactive = false } = {}) {
-  let query = supabase
+export async function findAllServices({ categoryId, includeInactive = false } = {}, supabaseClient = supabase) {
+  let query = supabaseClient
     .from('services')
     .select(`
       id,
@@ -31,8 +31,8 @@ export async function findAllServices({ categoryId, includeInactive = false } = 
   return data;
 }
 
-export async function findServiceById(id) {
-  const { data, error } = await supabase
+export async function findServiceById(id, supabaseClient = supabase) {
+  const { data, error } = await supabaseClient
     .from('services')
     .select(`
       id,
@@ -54,8 +54,8 @@ export async function findServiceById(id) {
   return data;
 }
 
-export async function findServiceByCategoryAndName(categoryId, name) {
-  const { data, error } = await supabase
+export async function findServiceByCategoryAndName(categoryId, name, supabaseClient = supabase) {
+  const { data, error } = await supabaseClient
     .from('services')
     .select('*')
     .eq('category_id', categoryId)
@@ -66,8 +66,8 @@ export async function findServiceByCategoryAndName(categoryId, name) {
   return data;
 }
 
-export async function createServiceRecord({ categoryId, name, description }) {
-  const { data, error } = await supabase
+export async function createServiceRecord({ categoryId, name, description }, supabaseClient = supabase) {
+  const { data, error } = await supabaseClient
     .from('services')
     .insert({
       category_id: categoryId,
@@ -81,14 +81,14 @@ export async function createServiceRecord({ categoryId, name, description }) {
   return data;
 }
 
-export async function updateServiceRecord(id, { name, description, isActive }) {
+export async function updateServiceRecord(id, { name, description, isActive }, supabaseClient = supabase) {
   const updates = {};
   if (name !== undefined) updates.name = name;
   if (description !== undefined) updates.description = description;
   if (isActive !== undefined) updates.is_active = isActive;
   updates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('services')
     .update(updates)
     .eq('id', id)

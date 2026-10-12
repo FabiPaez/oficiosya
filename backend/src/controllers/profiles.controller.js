@@ -2,7 +2,7 @@ import { getMyProfile, updateMyProfile } from '../services/profiles.service.js';
 
 export async function getMyProfileController(req, res, next) {
   try {
-    const profile = await getMyProfile(req.user.id);
+    const profile = await getMyProfile(req.supabase, req.user.id);
 
     return res.status(200).json({
       success: true,
@@ -15,7 +15,11 @@ export async function getMyProfileController(req, res, next) {
 
 export async function updateMyProfileController(req, res, next) {
   try {
-    const profile = await updateMyProfile(req.user.id, req.body);
+    const profile = await updateMyProfile(
+      req.supabase,
+      req.user.id,
+      req.body
+    );
 
     return res.status(200).json({
       success: true,

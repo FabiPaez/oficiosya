@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 import env from '../config/env.js';
-import { supabase } from '../config/supabase.js';
 
 export async function optionalAuthenticate(req, res, next) {
   try {
@@ -42,9 +41,10 @@ export async function optionalAuthenticate(req, res, next) {
     }
 
     req.user = user;
+    req.supabase = supabaseAuth;
 
     // Obtener los roles del usuario.
-    const { data: roleData, error: roleError } = await supabase
+    const { data: roleData, error: roleError } = await req.supabase
       .from('user_roles')
       .select(`
         roles (

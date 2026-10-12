@@ -18,7 +18,11 @@ import {
 const router = Router();
 
 router.get('/', optionalAuthenticate, getServicesController);
-router.get('/:id', getServiceByIdController);
+router.get(
+  '/:id',
+  optionalAuthenticate,
+  getServiceByIdController
+);
 
 router.post(
   '/',

@@ -1,7 +1,5 @@
-import { supabase } from '../config/supabase.js';
-
-export async function findProfileById(userId) {
-  const { data, error } = await supabase
+export async function findProfileById(supabaseClient, userId) {
+  const { data, error } = await supabaseClient
     .from('profiles')
     .select('*')
     .eq('id', userId)
@@ -14,7 +12,19 @@ export async function findProfileById(userId) {
   return data;
 }
 
-export async function updateProfile(userId, { firstName, lastName, phone, profileImageUrl, description, city, department }) {
+export async function updateProfile(
+  supabaseClient,
+  userId,
+  {
+    firstName,
+    lastName,
+    phone,
+    profileImageUrl,
+    description,
+    city,
+    department,
+  }
+) {
   const updates = {};
 
   if (firstName !== undefined) updates.first_name = firstName;
@@ -24,9 +34,10 @@ export async function updateProfile(userId, { firstName, lastName, phone, profil
   if (description !== undefined) updates.description = description;
   if (city !== undefined) updates.city = city;
   if (department !== undefined) updates.department = department;
+
   updates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('profiles')
     .update(updates)
     .eq('id', userId)

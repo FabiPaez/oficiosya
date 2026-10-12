@@ -41,6 +41,7 @@ beforeAll(async () => {
     weAssignedProviderRole = true;
   }
 
+  
   // 3. Crear servicio de prueba base
   const serviceRes = await request(app)
     .post('/api/services')
@@ -50,7 +51,39 @@ beforeAll(async () => {
       name: `Servicio Solicitudes ${Date.now()}`,
     });
 
+  if (serviceRes.statusCode !== 201 || !serviceRes.body?.data?.id) {
+    throw new Error(
+      [
+        'No se pudo crear el servicio de prueba.',
+        `HTTP: ${serviceRes.statusCode}`,
+        `Respuesta: ${JSON.stringify(serviceRes.body)}`,
+      ].join('\n')
+    );
+  }
+
   testServiceId = serviceRes.body.data.id;
+
+  // 4. Asociar el servicio al prestador de prueba
+  const providerServiceRes = await request(app)
+    .post('/api/provider-services')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      serviceId: testServiceId,
+      description: 'Asociación para pruebas de solicitudes',
+    });
+
+  if (
+    providerServiceRes.statusCode !== 201 ||
+    !providerServiceRes.body?.data?.id
+  ) {
+    throw new Error(
+      [
+        'No se pudo asociar el servicio al prestador de prueba.',
+        `HTTP: ${providerServiceRes.statusCode}`,
+        `Respuesta: ${JSON.stringify(providerServiceRes.body)}`,
+      ].join('\n')
+    );
+  }
 });
 
 afterEach(async () => {

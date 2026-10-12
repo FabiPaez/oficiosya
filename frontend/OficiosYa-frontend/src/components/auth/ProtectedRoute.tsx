@@ -11,7 +11,11 @@ function ProtectedRoute({
   allowedRoles,
   disallowedRoles,
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isInitializing } = useAuth()
+
+  if (isInitializing) {
+    return <p>Cargando sesión...</p>
+  }
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />

@@ -19,6 +19,7 @@ let clientToken;
 let adminToken;
 let weAssignedProviderRole = false;
 
+
 beforeAll(async () => {
   clientToken = await getClientToken();
   adminToken = await getAdminToken();
@@ -27,6 +28,17 @@ beforeAll(async () => {
   const adminProfileRes = await request(app)
     .get('/api/profiles/me')
     .set('Authorization', `Bearer ${adminToken}`);
+
+  if (
+    adminProfileRes.statusCode !== 200 ||
+    !adminProfileRes.body?.data?.id
+  ) {
+    throw new Error(
+      `No se pudo obtener el perfil del administrador: ${JSON.stringify(
+        adminProfileRes.body
+      )}`
+    );
+  }
 
   testProviderId = adminProfileRes.body.data.id;
 
@@ -41,9 +53,14 @@ beforeAll(async () => {
 
   if (providerRes.statusCode === 201) {
     weAssignedProviderRole = true;
+  } else if (providerRes.statusCode !== 409) {
+    throw new Error(
+      `No se pudo habilitar al administrador como prestador: HTTP ${providerRes.statusCode
+      } - ${JSON.stringify(providerRes.body)}`
+    );
   }
 
-  // 3. Crear servicio de prueba garantizado
+  // 3. Crear servicio de prueba
   const serviceRes = await request(app)
     .post('/api/services')
     .set('Authorization', `Bearer ${adminToken}`)
@@ -52,7 +69,33 @@ beforeAll(async () => {
       name: `Servicio Reviews ${Date.now()}`,
     });
 
+  if (serviceRes.statusCode !== 201 || !serviceRes.body?.data?.id) {
+    throw new Error(
+      `No se pudo crear el servicio de prueba: HTTP ${serviceRes.statusCode
+      } - ${JSON.stringify(serviceRes.body)}`
+    );
+  }
+
   testServiceId = serviceRes.body.data.id;
+
+  // 4. Asociar el servicio al prestador
+  const providerServiceRes = await request(app)
+    .post('/api/provider-services')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({
+      serviceId: testServiceId,
+      description: 'Asociación para pruebas de reseñas',
+    });
+
+  if (
+    providerServiceRes.statusCode !== 201 ||
+    !providerServiceRes.body?.data?.id
+  ) {
+    throw new Error(
+      `No se pudo asociar el servicio al prestador: HTTP ${providerServiceRes.statusCode
+      } - ${JSON.stringify(providerServiceRes.body)}`
+    );
+  }
 });
 
 afterEach(async () => {

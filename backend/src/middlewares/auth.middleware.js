@@ -47,6 +47,7 @@ export async function authenticate(req, res, next) {
     }
 
     req.user = user;
+    req.supabase = supabaseAuth;
 
     next();
   } catch (error) {

@@ -6,7 +6,11 @@ import {
 
 export async function registerProviderController(req, res, next) {
   try {
-    const provider = await registerAsProvider(req.user.id, req.body);
+    const provider = await registerAsProvider(
+      req.supabase,
+      req.user.id,
+      req.body,
+    );
 
     return res.status(201).json({
       success: true,
@@ -18,10 +22,17 @@ export async function registerProviderController(req, res, next) {
   }
 }
 
+
 export async function getProviderProfileController(req, res, next) {
   try {
-    const providerId = req.params.id === 'me' ? req.user.id : req.params.id;
-    const provider = await getProviderProfile(providerId);
+    const isOwnProfile = req.params.id === 'me';
+    const providerId = isOwnProfile
+      ? req.user.id
+      : req.params.id;
+
+    const provider = isOwnProfile
+      ? await getProviderProfile(providerId, req.supabase)
+      : await getProviderProfile(providerId);
 
     return res.status(200).json({
       success: true,
@@ -34,7 +45,11 @@ export async function getProviderProfileController(req, res, next) {
 
 export async function updateProviderProfileController(req, res, next) {
   try {
-    const updated = await updateProviderProfileService(req.user.id, req.body);
+    const updated = await updateProviderProfileService(
+      req.user.id,
+      req.body,
+      req.supabase,
+    );
 
     return res.status(200).json({
       success: true,

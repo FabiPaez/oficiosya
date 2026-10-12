@@ -1,16 +1,19 @@
 import { supabase } from '../config/supabase.js';
 
-export async function createServiceRequestRecord({
-  clientId,
-  providerId,
-  serviceId,
-  title,
-  description,
-  address,
-  city,
-  requestedDate,
-}) {
-  const { data, error } = await supabase
+export async function createServiceRequestRecord(
+  {
+    clientId,
+    providerId,
+    serviceId,
+    title,
+    description,
+    address,
+    city,
+    requestedDate,
+  },
+  supabaseClient = supabase,
+) {
+  const { data, error } = await supabaseClient
     .from('service_requests')
     .insert({
       client_id: clientId,
@@ -27,11 +30,15 @@ export async function createServiceRequestRecord({
     .single();
 
   if (error) throw error;
+
   return data;
 }
 
-export async function findServiceRequestById(id) {
-  const { data, error } = await supabase
+export async function findServiceRequestById(
+  id,
+  supabaseClient = supabase,
+) {
+  const { data, error } = await supabaseClient
     .from('service_requests')
     .select(`
       id,
@@ -55,11 +62,16 @@ export async function findServiceRequestById(id) {
     .maybeSingle();
 
   if (error) throw error;
+
   return data;
 }
 
-export async function findServiceRequestsByUser(userId, { role = 'CLIENT' } = {}) {
-  let query = supabase
+export async function findServiceRequestsByUser(
+  userId,
+  { role = 'CLIENT' } = {},
+  supabaseClient = supabase,
+) {
+  let query = supabaseClient
     .from('service_requests')
     .select(`
       id,
@@ -88,12 +100,18 @@ export async function findServiceRequestsByUser(userId, { role = 'CLIENT' } = {}
   }
 
   const { data, error } = await query;
+
   if (error) throw error;
+
   return data;
 }
 
-export async function updateServiceRequestStatusRecord(id, status) {
-  const { data, error } = await supabase
+export async function updateServiceRequestStatusRecord(
+  id,
+  status,
+  supabaseClient = supabase,
+) {
+  const { data, error } = await supabaseClient
     .from('service_requests')
     .update({
       status,
@@ -104,5 +122,6 @@ export async function updateServiceRequestStatusRecord(id, status) {
     .single();
 
   if (error) throw error;
+
   return data;
 }

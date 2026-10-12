@@ -131,3 +131,48 @@ export async function deleteFavoritesByUserAndProviders(relations) {
     }
   }
 }
+
+
+/**
+ * Elimina un usuario de prueba de Supabase Auth.
+ * Las claves administrativas se utilizan exclusivamente en tests.
+ * @param {string} userId
+ */
+export async function deleteAuthUserById(userId) {
+  if (!userId) return;
+
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+  if (error) {
+    throw new Error(
+      `[cleanup] Error al eliminar usuario de prueba: ${error.message}`
+    );
+  }
+}
+
+
+/**
+ * Consulta el perfil y los roles de un usuario de prueba.
+ * @param {string} userId
+ */
+export async function getAuthUserBootstrapById(userId) {
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .select('id, first_name, last_name, phone')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+
+  const { data: userRoles, error: rolesError } = await supabaseAdmin
+    .from('user_roles')
+    .select('roles(name)')
+    .eq('user_id', userId);
+
+  if (rolesError) throw rolesError;
+
+  return {
+    profile,
+    roles: (userRoles ?? []).map((item) => item.roles?.name).filter(Boolean),
+  };
+}

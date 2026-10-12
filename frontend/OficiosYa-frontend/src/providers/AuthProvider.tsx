@@ -161,9 +161,11 @@ export function AuthProvider({
 
   }
 
+
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null && !isInitializing,
+    isInitializing,
     loginMock,
     registerMock,
     logoutMock,

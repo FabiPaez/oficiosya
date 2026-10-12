@@ -1,9 +1,10 @@
 import { supabase } from '../config/supabase.js';
 
-export async function findAllCategories({
-  includeInactive = false,
-} = {}) {
-  let query = supabase
+export async function findAllCategories(
+  { includeInactive = false } = {},
+  supabaseClient = supabase
+) {
+  let query = supabaseClient
     .from('categories')
     .select('*')
     .order('name', { ascending: true });
@@ -21,8 +22,8 @@ export async function findAllCategories({
   return data;
 }
 
-export async function findCategoryById(id) {
-  const { data, error } = await supabase
+export async function findCategoryById(id, supabaseClient = supabase) {
+  const { data, error } = await supabaseClient
     .from('categories')
     .select('*')
     .eq('id', id)
@@ -35,8 +36,8 @@ export async function findCategoryById(id) {
   return data;
 }
 
-export async function findCategoryByName(name) {
-  const { data, error } = await supabase
+export async function findCategoryByName(name, supabaseClient = supabase) {
+  const { data, error } = await supabaseClient
     .from('categories')
     .select('*')
     .ilike('name', name)
@@ -52,8 +53,8 @@ export async function findCategoryByName(name) {
 export async function createCategory({
   name,
   description,
-}) {
-  const { data, error } = await supabase
+}, supabaseClient = supabase) {
+  const { data, error } = await supabaseClient
     .from('categories')
     .insert({
       name,
@@ -75,7 +76,8 @@ export async function updateCategory(
     name,
     description,
     isActive,
-  }
+  },
+  supabaseClient = supabase
 ) {
   const updates = {};
 
@@ -91,7 +93,7 @@ export async function updateCategory(
     updates.is_active = isActive;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('categories')
     .update(updates)
     .eq('id', id)

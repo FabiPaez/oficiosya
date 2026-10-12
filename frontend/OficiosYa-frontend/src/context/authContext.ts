@@ -5,6 +5,7 @@ import type { RegisterUserData } from '../services/authService'
 export interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
+  isInitializing: boolean
   loginMock: (user: User) => void
   registerMock: (data: RegisterUserData) => Promise<User | null>
   logoutMock: () => void

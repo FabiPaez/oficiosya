@@ -1,7 +1,11 @@
 import { supabase } from '../config/supabase.js';
 
-export async function findServicesByProviderId(providerId, { includeInactive = false } = {}) {
-  let query = supabase
+export async function findServicesByProviderId(
+  providerId,
+  { includeInactive = false } = {},
+  supabaseClient = supabase,
+) {
+  let query = supabaseClient
     .from('provider_services')
     .select(`
       id,
@@ -31,23 +35,33 @@ export async function findServicesByProviderId(providerId, { includeInactive = f
   }
 
   const { data, error } = await query;
+
   if (error) throw error;
+
   return data;
 }
 
-export async function findProviderServiceById(id) {
-  const { data, error } = await supabase
+export async function findProviderServiceById(
+  id,
+  supabaseClient = supabase,
+) {
+  const { data, error } = await supabaseClient
     .from('provider_services')
     .select('*')
     .eq('id', id)
     .maybeSingle();
 
   if (error) throw error;
+
   return data;
 }
 
-export async function findProviderServiceRelation(providerId, serviceId) {
-  const { data, error } = await supabase
+export async function findProviderServiceRelation(
+  providerId,
+  serviceId,
+  supabaseClient = supabase,
+) {
+  const { data, error } = await supabaseClient
     .from('provider_services')
     .select('*')
     .eq('provider_id', providerId)
@@ -55,11 +69,15 @@ export async function findProviderServiceRelation(providerId, serviceId) {
     .maybeSingle();
 
   if (error) throw error;
+
   return data;
 }
 
-export async function createProviderServiceRecord({ providerId, serviceId, priceFrom, priceTo, description }) {
-  const { data, error } = await supabase
+export async function createProviderServiceRecord(
+  { providerId, serviceId, priceFrom, priceTo, description },
+  supabaseClient = supabase,
+) {
+  const { data, error } = await supabaseClient
     .from('provider_services')
     .insert({
       provider_id: providerId,
@@ -73,18 +91,25 @@ export async function createProviderServiceRecord({ providerId, serviceId, price
     .single();
 
   if (error) throw error;
+
   return data;
 }
 
-export async function updateProviderServiceRecord(id, { priceFrom, priceTo, description, isActive }) {
+export async function updateProviderServiceRecord(
+  id,
+  { priceFrom, priceTo, description, isActive },
+  supabaseClient = supabase,
+) {
   const updates = {};
+
   if (priceFrom !== undefined) updates.price_from = priceFrom;
   if (priceTo !== undefined) updates.price_to = priceTo;
   if (description !== undefined) updates.description = description;
   if (isActive !== undefined) updates.is_active = isActive;
+
   updates.updated_at = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('provider_services')
     .update(updates)
     .eq('id', id)
@@ -92,5 +117,6 @@ export async function updateProviderServiceRecord(id, { priceFrom, priceTo, desc
     .single();
 
   if (error) throw error;
+
   return data;
 }

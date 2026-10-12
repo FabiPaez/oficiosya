@@ -1,8 +1,11 @@
-import { findProfileById, updateProfile } from '../repositories/profiles.repository.js';
+import {
+  findProfileById,
+  updateProfile,
+} from '../repositories/profiles.repository.js';
 import { AppError } from '../utils/AppError.js';
 
-export async function getMyProfile(userId) {
-  const profile = await findProfileById(userId);
+export async function getMyProfile(supabaseClient, userId) {
+  const profile = await findProfileById(supabaseClient, userId);
 
   if (!profile) {
     throw new AppError('Perfil no encontrado', 404);
@@ -11,12 +14,12 @@ export async function getMyProfile(userId) {
   return profile;
 }
 
-export async function updateMyProfile(userId, updateData) {
-  const profile = await findProfileById(userId);
+export async function updateMyProfile(supabaseClient, userId, updateData) {
+  const profile = await findProfileById(supabaseClient, userId);
 
   if (!profile) {
     throw new AppError('Perfil no encontrado', 404);
   }
 
-  return updateProfile(userId, updateData);
+  return updateProfile(supabaseClient, userId, updateData);
 }

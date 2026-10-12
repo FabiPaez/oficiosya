@@ -1,5 +1,3 @@
-import { supabase } from '../config/supabase.js';
-
 export function authorize(...allowedRoles) {
   return async (req, res, next) => {
     try {
@@ -9,8 +7,14 @@ export function authorize(...allowedRoles) {
           message: 'Usuario no autenticado',
         });
       }
+      if (!req.supabase) {
+        return res.status(401).json({
+          success: false,
+          message: 'Cliente autenticado no disponible',
+        });
+      }
 
-      const { data, error } = await supabase
+      const { data, error } = await req.supabase
         .from('user_roles')
         .select(`
           roles (

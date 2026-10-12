@@ -40,6 +40,9 @@ describe('authorize middleware', () => {
       user: {
         id: 'user-123',
       },
+      supabase: {
+        from: mockFrom,
+      },
     };
 
     const res = {
@@ -79,6 +82,9 @@ describe('authorize middleware', () => {
     const req = {
       user: {
         id: 'user-123',
+      },
+      supabase: {
+        from: mockFrom,
       },
     };
 
@@ -122,29 +128,32 @@ describe('authorize middleware', () => {
         error: null,
       }),
     });
-  
+
     const req = {
       user: {
         id: 'user-123',
       },
+      supabase: {
+        from: mockFrom,
+      },
     };
-  
+
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
-  
+
     const next = jest.fn();
-  
+
     const middleware = authorize(
       'PROVIDER',
       'ADMIN'
     );
-  
+
     await middleware(req, res, next);
-  
+
     expect(next).toHaveBeenCalled();
-  
+
     expect(req.user.roles).toEqual([
       'CLIENT',
       'PROVIDER',
@@ -153,25 +162,25 @@ describe('authorize middleware', () => {
 
   test('debe devolver 401 si no existe req.user', async () => {
     const req = {};
-  
+
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
-  
+
     const next = jest.fn();
-  
+
     const middleware = authorize('CLIENT');
-  
+
     await middleware(req, res, next);
-  
+
     expect(res.status).toHaveBeenCalledWith(401);
-  
+
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       message: 'Usuario no autenticado',
     });
-  
+
     expect(next).not.toHaveBeenCalled();
   });
 

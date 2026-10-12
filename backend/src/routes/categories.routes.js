@@ -30,6 +30,7 @@ router.get(
 
 router.get(
   '/:id',
+  optionalAuthenticate,
   getCategoryByIdController
 );
 
