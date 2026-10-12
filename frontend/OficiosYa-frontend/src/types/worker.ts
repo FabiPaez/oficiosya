@@ -20,7 +20,7 @@ export interface Worker {
   ratingAverage: number
   reviewCount: number
   premium: boolean
-  experienceYears: number
+  experienceYears: number | '+40'
   schedule: string
   availableDays: string[]
   active: boolean

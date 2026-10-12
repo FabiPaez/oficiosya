@@ -1,3 +1,4 @@
+
 import type { Favorite } from '../types/favorite'
 
 export const mockFavorites: Favorite[] = [

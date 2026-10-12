@@ -9,6 +9,7 @@ import { rankWorkers } from '../utils/workerRanking'
 import ActiveFilters from '../components/search/ActiveFilters'
 import SearchFilters from '../components/search/SearchFilters'
 import WorkerCard from '../components/workers/WorkerCard'
+import { useAuth } from '../hooks/useAuth'
 
 const INITIAL_FILTERS: WorkerSearchFilters = {
   query: '',
@@ -25,6 +26,7 @@ const VALID_ZONES = [
 function SearchPage() {
   const [searchParams, setSearchParams] =
     useSearchParams()
+  const { user } = useAuth()
 
   const [filters, setFilters] =
     useState<WorkerSearchFilters>(INITIAL_FILTERS)
@@ -51,9 +53,9 @@ function SearchPage() {
 
         const validCategoryId =
           categoryId &&
-          result.some(
-            (category) => category.id === categoryId,
-          )
+            result.some(
+              (category) => category.id === categoryId,
+            )
             ? categoryId
             : undefined
 
@@ -119,7 +121,13 @@ function SearchPage() {
         const result = await workerService.search(filters)
         const rankedWorkers = rankWorkers(result, filters)
 
-        setWorkers(rankedWorkers)
+        const visibleWorkers = user
+          ? rankedWorkers.filter(
+            (worker) => worker.userId !== user.id,
+          )
+          : rankedWorkers
+
+        setWorkers(visibleWorkers)
       } catch {
         setError(true)
         setWorkers([])
@@ -129,7 +137,7 @@ function SearchPage() {
     }
 
     void searchWorkers()
-  }, [filters])
+  }, [filters, user])
 
   function handleFiltersChange(
     nextFilters: WorkerSearchFilters,

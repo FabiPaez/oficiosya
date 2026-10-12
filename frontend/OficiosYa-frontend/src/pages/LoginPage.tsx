@@ -12,6 +12,7 @@ function LoginPage() {
   const { loginMock } = useAuth()
 
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -19,10 +20,14 @@ function LoginPage() {
     event: ChangeEvent<HTMLInputElement>,
   ) {
     setEmail(event.target.value)
+    if (error) setError('')
+  }
 
-    if (error) {
-      setError('')
-    }
+  function handlePasswordChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    setPassword(event.target.value)
+    if (error) setError('')
   }
 
   async function handleSubmit(
@@ -41,143 +46,121 @@ function LoginPage() {
       return
     }
 
-    const emailPattern =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!emailPattern.test(normalizedEmail)) {
-      setError(
-        'Ingresá un correo electrónico válido.',
-      )
+      setError('Ingresá un correo electrónico válido.')
+      return
+    }
+
+    if (!password) {
+      setError('Ingresá tu contraseña.')
       return
     }
 
     setLoading(true)
 
     try {
-      const user =
-        await authService.login(normalizedEmail)
-
-      if (!user) {
-        setError(
-          'No encontramos una cuenta activa con ese correo electrónico.',
-        )
-        return
-      }
+      const user = await authService.login(
+        normalizedEmail,
+        password,
+      )
 
       loginMock(user)
       navigate('/')
-    } catch {
+    } catch (error: unknown) {
       setError(
-        'Ocurrió un error al iniciar sesión. Intentá nuevamente.',
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al iniciar sesión. Intentá nuevamente.',
       )
     } finally {
       setLoading(false)
     }
+
   }
 
-  return (
-    <main className="page">
-      <div className="container">
-        <section className="form-page">
-          <div className="form-page-header">
-            <span className="badge badge-premium">
-              OficiosYa
-            </span>
+  return (<main className="page"> <div className="container"> <section className="form-page"> <div className="form-page-header"> <span className="badge badge-premium">
+    OficiosYa </span>
 
-            <h1>Iniciar sesión</h1>
+    <h1>Iniciar sesión</h1>
 
-            <p>
-              Ingresá con tu correo electrónico para
-              acceder a tu cuenta.
-            </p>
-          </div>
+    <p>
+      Ingresá con tu correo electrónico y contraseña
+      para acceder a tu cuenta.
+    </p>
+  </div>
 
-          <form
-            className="form-card"
-            onSubmit={handleSubmit}
-            noValidate
-          >
-            {error && (
-              <div
-                className="state state-error"
-                role="alert"
-                aria-live="polite"
-              >
-                {error}
-              </div>
-            )}
+    <form
+      className="form-card"
+      onSubmit={handleSubmit}
+      noValidate
+    >
+      {error && (
+        <div
+          className="state state-error"
+          role="alert"
+          aria-live="polite"
+        >
+          {error}
+        </div>
+      )}
 
-            <div className="form-group">
-              <label htmlFor="login-email">
-                Correo electrónico
-              </label>
+      <div className="form-group">
+        <label htmlFor="login-email">
+          Correo electrónico
+        </label>
 
-              <input
-                id="login-email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                autoComplete="email"
-                disabled={loading}
-                aria-invalid={Boolean(error)}
-                aria-describedby={
-                  error
-                    ? 'login-email-error'
-                    : undefined
-                }
-                required
-              />
-
-              {error && (
-                <span
-                  id="login-email-error"
-                  className="form-error"
-                >
-                  {error}
-                </span>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={loading}
-            >
-              {loading
-                ? 'Ingresando...'
-                : 'Iniciar sesión'}
-            </button>
-
-            <div className="form-page-footer">
-              <p>
-                ¿Todavía no tenés una cuenta?{' '}
-                <Link to="/registro">
-                  Registrarme
-                </Link>
-              </p>
-            </div>
-          </form>
-
-          <div className="state state-empty">
-            <strong>Acceso de prueba</strong>
-
-            <p>
-              Durante esta etapa del desarrollo, podés
-              utilizar cualquiera de los correos de los
-              usuarios mock.
-            </p>
-
-            <p>
-              Por ejemplo:{' '}
-              <strong>
-                carlos.perez@example.com o juan.sanchez@example.com
-              </strong>
-            </p>
-          </div>
-        </section>
+        <input
+          id="login-email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={handleEmailChange}
+          autoComplete="email"
+          disabled={loading}
+          aria-invalid={Boolean(error)}
+          required
+        />
       </div>
-    </main>
+
+      <div className="form-group">
+        <label htmlFor="login-password">
+          Contraseña
+        </label>
+
+        <input
+          id="login-password"
+          name="password"
+          type="password"
+          value={password}
+          onChange={handlePasswordChange}
+          autoComplete="current-password"
+          disabled={loading}
+          aria-invalid={Boolean(error)}
+          required
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="button button-primary"
+        disabled={loading}
+      >
+        {loading ? 'Ingresando...' : 'Iniciar sesión'}
+      </button>
+
+      <div className="form-page-footer">
+        <p>
+          ¿Todavía no tenés una cuenta?{' '}
+          <Link to="/registro">Registrarme</Link>
+        </p>
+      </div>
+    </form>
+  </section>
+  </div>
+  </main>
+
   )
 }
 

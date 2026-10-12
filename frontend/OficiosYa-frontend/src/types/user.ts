@@ -7,6 +7,7 @@ export interface User {
   email: string
   phone: string
   role: UserRole
+  roles?: UserRole[]
   department: string
   createdAt: string
   active: boolean

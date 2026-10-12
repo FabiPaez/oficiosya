@@ -26,7 +26,10 @@ function WorkerPage() {
   const [favoriteLoading, setFavoriteLoading] = useState(false)
   const [reporting, setReporting] = useState(false)
 
+
   useEffect(() => {
+    let cancelled = false
+
     async function loadWorker() {
       if (!id) {
         setWorker(null)
@@ -44,19 +47,9 @@ function WorkerPage() {
       try {
         const result = await workerService.getById(id)
 
+        if (cancelled) return
+
         setWorker(result)
-
-        if (user && result) {
-          const favorite =
-            await favoriteService.isFavorite(
-              user.id,
-              result.id,
-            )
-
-          setIsFavorite(favorite)
-        } else {
-          setIsFavorite(false)
-        }
 
         if (!result) {
           setReviews([])
@@ -68,25 +61,39 @@ function WorkerPage() {
           const workerReviews =
             await reviewService.getByWorkerId(result.id)
 
-          setReviews(workerReviews)
+          if (!cancelled) {
+            setReviews(workerReviews)
+          }
         } catch {
-          setReviewsError(true)
-          setReviews([])
+          if (!cancelled) {
+            setReviewsError(true)
+            setReviews([])
+          }
         } finally {
-          setReviewsLoading(false)
+          if (!cancelled) {
+            setReviewsLoading(false)
+          }
         }
       } catch {
-        setError(true)
-        setWorker(null)
-        setReviews([])
-        setReviewsLoading(false)
+        if (!cancelled) {
+          setError(true)
+          setWorker(null)
+          setReviews([])
+          setReviewsLoading(false)
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
 
     void loadWorker()
-  }, [id, user])
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   useEffect(() => {
     async function loadFavoriteState() {
@@ -269,14 +276,26 @@ function WorkerPage() {
               Llamar
             </a>
 
-            <a
-              href={`https://wa.me/${worker.whatsapp}`}
-              className="button button-secondary"
-              target="_blank"
-              rel="noreferrer"
-            >
-              WhatsApp
-            </a>
+
+            {worker.whatsapp.trim() ? (
+              <a
+                href={`https://wa.me/${worker.whatsapp.replace(/\D/g, '')}`}
+                className="button button-secondary"
+                target="_blank"
+                rel="noreferrer"
+              >
+                WhatsApp
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled
+                aria-label="WhatsApp no disponible: el trabajador no informó un número"
+              >
+                WhatsApp (no disponible)
+              </button>
+            )}
           </div>
 
           <div className="worker-profile-actions">

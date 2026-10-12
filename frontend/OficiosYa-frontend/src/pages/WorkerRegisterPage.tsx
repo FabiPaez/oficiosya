@@ -8,6 +8,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { categoryService } from '../services/categoryService'
 import type { Category } from '../types/category'
+import { workerService } from '../services/workerService'
+import {
+  WORKER_DAYS_OPTIONS,
+  WORKER_SCHEDULE_OPTIONS,
+} from '../constants/workerAvailability'
 
 const registrationSteps = [
   {
@@ -50,11 +55,13 @@ interface WorkerRegistrationDraft {
   zones: string[]
   photoUrl: string
   workPhotoUrls: string[]
+  schedule: string
+  availableDays: string[]
 }
 
 function WorkerRegisterPage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, registerAsProvider } = useAuth()
 
   const [currentStep, setCurrentStep] = useState(0)
 
@@ -72,6 +79,14 @@ function WorkerRegisterPage() {
     zones: ['Centro'],
     photoUrl: '',
     workPhotoUrls: [],
+    schedule: 'Jornada completa',
+    availableDays: [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+    ],
   }))
 
   const [errors, setErrors] = useState<
@@ -83,10 +98,17 @@ function WorkerRegisterPage() {
   const [categoriesLoadError, setCategoriesLoadError] = useState(false)
   const [categoryValidationError, setCategoryValidationError] = useState('')
 
+
   const [presentationErrors, setPresentationErrors] = useState<{
     description?: string
     experienceYears?: string
+    schedule?: string
+    availableDays?: string
   }>({})
+
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [registrationComplete, setRegistrationComplete] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -166,24 +188,24 @@ function WorkerRegisterPage() {
     return value
   }
 
-
   function validatePresentation(): boolean {
     const nextErrors: {
       description?: string
       experienceYears?: string
+      schedule?: string
+      availableDays?: string
     } = {}
 
     const description = draft.description.trim()
     const experience = draft.experienceYears.trim()
 
-    // La descripción es opcional. Si se completa,
-    // no puede superar los 600 caracteres.
+    // La descripción es opcional, pero tiene un máximo de 600 caracteres.
     if (description.length > 600) {
       nextErrors.description =
         'La descripción no puede superar los 600 caracteres.'
     }
 
-    // Los años de experiencia siguen siendo obligatorios.
+    // Los años de experiencia son obligatorios.
     if (!experience) {
       nextErrors.experienceYears =
         'Seleccioná tus años de experiencia.'
@@ -201,22 +223,56 @@ function WorkerRegisterPage() {
       }
     }
 
+    // El horario es obligatorio y debe corresponder a una opción disponible.
+    if (
+      !WORKER_SCHEDULE_OPTIONS.some(
+        (option) => option.value === draft.schedule,
+      )
+    ) {
+      nextErrors.schedule = 'Seleccioná un horario de atención.'
+    }
+
+    // Debe seleccionarse al menos un día válido.
+    if (
+      draft.availableDays.length === 0 ||
+      !draft.availableDays.every((day) =>
+        WORKER_DAYS_OPTIONS.includes(
+          day as (typeof WORKER_DAYS_OPTIONS)[number],
+        ),
+      )
+    ) {
+      nextErrors.availableDays =
+        'Seleccioná al menos un día disponible.'
+    }
+
     setPresentationErrors(nextErrors)
 
     return Object.keys(nextErrors).length === 0
   }
+
 
   function validateContactCoverage(): boolean {
     const nextErrors: Partial<
       Record<keyof WorkerRegistrationDraft, string>
     > = {}
 
+    const isValidPhoneNumber = (value: string): boolean => {
+      const digits = value.replace(/\D/g, '')
+      return digits.length >= 10 && digits.length <= 13
+    }
+
     if (!draft.phone.trim()) {
       nextErrors.phone = 'Ingresá un teléfono de contacto.'
+    } else if (!isValidPhoneNumber(draft.phone)) {
+      nextErrors.phone =
+        'Ingresá un teléfono válido con entre 10 y 13 dígitos.'
     }
 
     if (!draft.whatsapp.trim()) {
       nextErrors.whatsapp = 'Ingresá un número de WhatsApp.'
+    } else if (!isValidPhoneNumber(draft.whatsapp)) {
+      nextErrors.whatsapp =
+        'Ingresá un WhatsApp válido con entre 10 y 13 dígitos.'
     }
 
     setErrors((previous) => ({
@@ -227,6 +283,7 @@ function WorkerRegisterPage() {
 
     return !nextErrors.phone && !nextErrors.whatsapp
   }
+
 
   function validatePersonalData(): boolean {
     const nextErrors: Partial<
@@ -251,6 +308,13 @@ function WorkerRegisterPage() {
 
     if (!draft.phone.trim()) {
       nextErrors.phone = 'Ingresá un teléfono de contacto.'
+    } else {
+      const phoneDigits = draft.phone.replace(/\D/g, '')
+
+      if (phoneDigits.length < 10 || phoneDigits.length > 13) {
+        nextErrors.phone =
+          'Ingresá un teléfono válido con entre 10 y 13 dígitos.'
+      }
     }
 
     if (!draft.department) {
@@ -422,6 +486,54 @@ function WorkerRegisterPage() {
     }
 
     setCurrentStep(4)
+  }
+
+
+  async function handleConfirmRegistration() {
+    if (isSubmitting || registrationComplete) {
+      return
+    }
+
+    if (!user) {
+      window.alert(
+        'Necesitás iniciar sesión para registrar tu perfil profesional.',
+      )
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await workerService.createMock({
+        userId: user.id,
+        firstName: draft.firstName.trim(),
+        lastName: draft.lastName.trim(),
+        description: draft.description.trim(),
+        phone: draft.phone.trim(),
+        whatsapp: draft.whatsapp.trim(),
+        department: 'Jáchal',
+        zones: draft.zones,
+        coverage: draft.coverage,
+        categories: draft.categories,
+        photoUrl: draft.photoUrl,
+        workPhotoUrls: draft.workPhotoUrls,
+        experienceYears:
+          draft.experienceYears === '+40'
+            ? '+40'
+            : Number(draft.experienceYears),
+        schedule: draft.schedule,
+        availableDays: draft.availableDays,
+      })
+
+      registerAsProvider()
+      setRegistrationComplete(true)
+    } catch {
+      window.alert(
+        'No se pudo crear el perfil. Intentá nuevamente.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function handleNext() {
@@ -636,8 +748,6 @@ function WorkerRegisterPage() {
               >
                 <option value="">Seleccioná un departamento</option>
                 <option value="Jáchal">Jáchal</option>
-                <option value="Iglesia">Iglesia</option>
-                <option value="Otro">Otro departamento</option>
               </select>
               {errors.department && (
                 <p id="department-error" className="provider-registration__error">
@@ -823,6 +933,64 @@ function WorkerRegisterPage() {
               )}
             </div>
 
+
+            <fieldset className="provider-registration__coverage">
+              <legend>¿En qué horarios trabajás?</legend>
+
+              {WORKER_SCHEDULE_OPTIONS.map((option) => (
+                <label key={option.value}>
+                  <input
+                    type="radio"
+                    name="schedule"
+                    value={option.value}
+                    checked={draft.schedule === option.value}
+                    onChange={(event) =>
+                      setDraft((previous) => ({
+                        ...previous,
+                        schedule: event.target.value,
+                      }))
+                    }
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </fieldset>
+            {presentationErrors.schedule && (
+              <p className="form-error" role="alert">
+                {presentationErrors.schedule}
+              </p>
+            )}
+
+            <fieldset className="provider-registration__coverage">
+              <legend>¿Qué días estás disponible?</legend>
+
+              {WORKER_DAYS_OPTIONS.map((day) => (
+                <label key={day}>
+                  <input
+                    type="checkbox"
+                    name="availableDays"
+                    value={day}
+                    checked={draft.availableDays.includes(day)}
+                    onChange={(event) => {
+                      setDraft((previous) => ({
+                        ...previous,
+                        availableDays: event.target.checked
+                          ? [...previous.availableDays, day]
+                          : previous.availableDays.filter(
+                            (selectedDay) => selectedDay !== day,
+                          ),
+                      }))
+                    }}
+                  />
+                  <span>{day}</span>
+                </label>
+              ))}
+            </fieldset>
+            {presentationErrors.availableDays && (
+              <p className="form-error" role="alert">
+                {presentationErrors.availableDays}
+              </p>
+            )}
 
             <div className="provider-registration__field">
               <label htmlFor="experienceYears">
@@ -1155,31 +1323,129 @@ function WorkerRegisterPage() {
           </section>
         )}
 
+
         {currentStep === 5 && (
-          <div className="provider-registration__placeholder">
-            <p>
-              El paso de confirmación se implementará en el siguiente
-              paso de desarrollo.
-            </p>
+          registrationComplete ? (
+            <section
+              className="provider-registration__success"
+              aria-live="polite"
+            >
+              <h3>¡Tu perfil fue creado!</h3>
 
-            <div className="provider-registration__actions">
-              <button
-                className="provider-registration__button provider-registration__button--secondary"
-                type="button"
-                onClick={handleCancel}
-              >
-                Cancelar
-              </button>
+              <p>
+                El perfil profesional se registró en los datos simulados
+                de OficiosYa. Todavía no se ha guardado en un servidor.
+              </p>
 
               <button
-                className="provider-registration__button provider-registration__button--secondary"
                 type="button"
-                onClick={handlePrevious}
+                className="provider-registration__button provider-registration__button--primary"
+                onClick={() => navigate('/mi-perfil')}
               >
-                Anterior
+                Ir a mi perfil
               </button>
-            </div>
-          </div>
+            </section>
+          ) : (
+            <section className="provider-registration__confirmation">
+              <h3>Revisá tu información</h3>
+
+              <div>
+                <h4>Datos personales</h4>
+                <p>
+                  <strong>Nombre:</strong>{' '}
+                  {draft.firstName} {draft.lastName}
+                </p>
+                <p><strong>Correo:</strong> {draft.email}</p>
+                <p><strong>Teléfono:</strong> {draft.phone}</p>
+                <p><strong>Departamento:</strong> Jáchal</p>
+              </div>
+
+              <div>
+                <h4>Servicios</h4>
+                <p>
+                  <strong>Categorías:</strong>{' '}
+                  {availableCategories
+                    .filter((category) =>
+                      draft.categories.includes(category.id),
+                    )
+                    .map((category) => category.name)
+                    .join(', ') || 'Sin categorías'}
+                </p>
+                <p>
+                  <strong>Descripción:</strong>{' '}
+                  {draft.description.trim() || 'Sin descripción'}
+                </p>
+                <p>
+                  <strong>Experiencia:</strong>{' '}
+                  {draft.experienceYears === '+40'
+                    ? '+40 años'
+                    : `${draft.experienceYears} ${draft.experienceYears === '1' ? 'año' : 'años'
+                    }`}
+                </p>
+              </div>
+
+              <div>
+                <h4>Contacto y cobertura</h4>
+                <p><strong>WhatsApp:</strong> {draft.whatsapp}</p>
+                <p>
+                  <strong>Cobertura:</strong>{' '}
+                  {draft.coverage === 'SOLO CENTRO'
+                    ? 'Jáchal Centro'
+                    : draft.coverage === 'RURAL'
+                      ? 'Zonas rurales de Jáchal'
+                      : 'Jáchal Centro y zonas rurales'}
+                </p>
+              </div>
+
+              <div>
+                <h4>Imágenes</h4>
+                <p>
+                  Foto de perfil:{' '}
+                  {draft.photoUrl ? 'Agregada' : 'No agregada'}
+                </p>
+                <p>
+                  Fotos de trabajos: {draft.workPhotoUrls.length}
+                </p>
+              </div>
+
+              <p className="provider-registration__field-help">
+                Revisá los datos antes de confirmar. Las imágenes utilizan
+                direcciones temporales del navegador y todavía no se guardan
+                en un servidor.
+              </p>
+
+              <div className="provider-registration__actions">
+                <button
+                  type="button"
+                  className="provider-registration__button provider-registration__button--secondary"
+                  onClick={handleCancel}
+                  disabled={isSubmitting}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  className="provider-registration__button provider-registration__button--secondary"
+                  onClick={handlePrevious}
+                  disabled={isSubmitting}
+                >
+                  Anterior
+                </button>
+
+                <button
+                  type="button"
+                  className="provider-registration__button provider-registration__button--primary"
+                  onClick={handleConfirmRegistration}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? 'Registrando...'
+                    : 'Confirmar registro'}
+                </button>
+              </div>
+            </section>
+          )
         )}
       </section>
     </main>

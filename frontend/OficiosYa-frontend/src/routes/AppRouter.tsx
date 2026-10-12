@@ -13,6 +13,9 @@ import ProfilePage from '../pages/ProfilePage'
 import ReviewsPage from '../pages/ReviewsPage'
 import AdminPage from '../pages/AdminPage'
 import NotFoundPage from '../pages/NotFoundPage'
+import FavoritesPage from '../pages/FavoritesPage'
+import ReceivedReviewsPage from '../pages/ReceivedReviewsPage'
+import EditWorkerProfilePage from '../pages/EditWorkerProfilePage'
 
 function AppRouter() {
   return (
@@ -47,22 +50,55 @@ function AppRouter() {
           element={<RegisterPage />}
         />
 
-        <Route element={<ProtectedRoute />}>
+        <Route
+          element={
+            <ProtectedRoute
+              allowedRoles={['CLIENT']}
+              disallowedRoles={['PROVIDER']}
+            />
+          }
+        >
           <Route
             path="/registro-trabajador"
             element={<WorkerRegisterPage />}
           />
+        </Route>
 
+        <Route element={<ProtectedRoute />}>
           <Route
             path="/mi-perfil"
             element={<ProfilePage />}
           />
 
           <Route
+            path="/favoritos"
+            element={<FavoritesPage />}
+          />
+
+          <Route
             path="/mis-calificaciones"
             element={<ReviewsPage />}
           />
+
         </Route>
+
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={['PROVIDER']} />
+          }
+        >
+          <Route
+            path="/calificaciones-recibidas"
+            element={<ReceivedReviewsPage />}
+          />
+
+          <Route
+            path="/editar-perfil-trabajador"
+            element={<EditWorkerProfilePage />}
+          />
+
+        </Route>
+
 
         <Route
           element={<ProtectedRoute allowedRoles={['ADMIN']} />}

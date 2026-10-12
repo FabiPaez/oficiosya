@@ -1,4 +1,6 @@
+
 import { mockFavorites } from '../data/mockFavorites'
+import { mockWorkers } from '../data/mockWorkers'
 import type { Favorite } from '../types/favorite'
 
 export const favoriteService = {
@@ -16,6 +18,14 @@ export const favoriteService = {
     clientId: string,
     workerId: string,
   ): Promise<boolean> {
+    const worker = mockWorkers.find(
+      (item) => item.id === workerId,
+    )
+
+    if (worker?.userId === clientId) {
+      return false
+    }
+
     const favorite = mockFavorites.some(
       (item) =>
         item.clientId === clientId &&
@@ -29,6 +39,16 @@ export const favoriteService = {
     clientId: string,
     workerId: string,
   ): Promise<Favorite> {
+    const worker = mockWorkers.find(
+      (item) => item.id === workerId,
+    )
+
+    if (worker?.userId === clientId) {
+      throw new Error(
+        'No podés agregar tu propio perfil a favoritos.',
+      )
+    }
+
     const existingFavorite = mockFavorites.find(
       (item) =>
         item.clientId === clientId &&

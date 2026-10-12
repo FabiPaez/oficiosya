@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { workerService } from '../../services/workerService'
 import type { Worker } from '../../types/worker'
+import { rankWorkers } from '../../utils/workerRanking'
 import Badge from '../ui/Badge'
 import Card from '../ui/Card'
 import WorkerRating from '../workers/WorkerRating'
@@ -16,15 +17,7 @@ function FeaturedWorkers() {
       try {
         const result = await workerService.getAll()
 
-        const featured = [...result]
-          .sort((a, b) => {
-            if (a.premium !== b.premium) {
-              return a.premium ? -1 : 1
-            }
-
-            return b.ratingAverage - a.ratingAverage
-          })
-          .slice(0, 4)
+        const featured = rankWorkers(result, {}).slice(0, 4)
 
         setWorkers(featured)
       } catch {

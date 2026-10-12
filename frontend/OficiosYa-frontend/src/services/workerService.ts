@@ -1,5 +1,5 @@
-
 import { mockWorkers } from '../data/mockWorkers'
+import { mockReviews } from '../data/mockReviews'
 import type { Worker } from '../types/worker'
 import type { WorkerSearchFilters } from '../types/search'
 import { normalizeText } from '../utils/normalizeText'
@@ -9,11 +9,47 @@ export type CreateMockWorkerData = Omit<
   'id' | 'ratingAverage' | 'reviewCount' | 'premium' | 'active'
 >
 
+export type UpdateMockWorkerData = Pick<
+  Worker,
+  | 'description'
+  | 'phone'
+  | 'whatsapp'
+  | 'department'
+  | 'zones'
+  | 'coverage'
+  | 'categories'
+  | 'photoUrl'
+  | 'workPhotoUrls'
+  | 'experienceYears'
+  | 'schedule'
+  | 'availableDays'
+>
+
+function withReviewMetrics(worker: Worker): Worker {
+  const reviews = mockReviews.filter(
+    (review) => review.workerId === worker.id,
+  )
+
+  const ratingAverage =
+    reviews.length > 0
+      ? reviews.reduce(
+        (total, review) => total + review.rating,
+        0,
+      ) / reviews.length
+      : 0
+
+  return {
+    ...worker,
+    ratingAverage,
+    reviewCount: reviews.length,
+  }
+}
+
 export const workerService = {
   async getAll(): Promise<Worker[]> {
-    return Promise.resolve(
-      mockWorkers.filter((worker) => worker.active),
-    )
+    return mockWorkers
+      .filter((worker) => worker.active)
+      .map(withReviewMetrics)
   },
 
   async getById(id: string): Promise<Worker | null> {
@@ -21,7 +57,9 @@ export const workerService = {
       (item) => item.id === id && item.active,
     )
 
-    return Promise.resolve(worker ?? null)
+    return Promise.resolve(
+      worker ? withReviewMetrics(worker) : null,
+    )
   },
 
   async search(
@@ -72,10 +110,29 @@ export const workerService = {
       )
     })
 
-    return Promise.resolve(workers)
+    return workers.map(withReviewMetrics)
   },
 
-  async createMock(data: CreateMockWorkerData): Promise<Worker> {
+  async updateMock(
+    id: string,
+    data: UpdateMockWorkerData,
+  ): Promise<Worker | null> {
+    const worker = mockWorkers.find(
+      (item) => item.id === id,
+    )
+
+    if (!worker) {
+      return null
+    }
+
+    Object.assign(worker, data)
+
+    return withReviewMetrics(worker)
+  },
+
+  async createMock(
+    data: CreateMockWorkerData,
+  ): Promise<Worker> {
     const worker: Worker = {
       ...data,
       id: `worker-${Date.now()}`,
@@ -87,6 +144,6 @@ export const workerService = {
 
     mockWorkers.push(worker)
 
-    return Promise.resolve(worker)
+    return withReviewMetrics(worker)
   },
 }

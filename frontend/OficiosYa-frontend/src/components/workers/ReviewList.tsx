@@ -1,4 +1,4 @@
-import WorkerRating from './WorkerRating'
+
 import type { Review } from '../../types/review'
 
 interface ReviewListProps {
@@ -32,10 +32,14 @@ function ReviewList({ reviews }: ReviewListProps) {
               </span>
             </div>
 
-            <WorkerRating
-              rating={review.rating}
-              reviewCount={3}
-            />
+            <div
+              className="worker-rating"
+              aria-label={`Calificación: ${review.rating} de 5`}
+            >
+              <span aria-hidden="true">★</span>{' '}
+              {review.rating.toFixed(1)}
+              <span>/5</span>
+            </div>
           </div>
 
           {review.comment && (
