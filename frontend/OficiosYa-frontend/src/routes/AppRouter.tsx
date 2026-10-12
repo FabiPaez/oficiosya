@@ -50,19 +50,13 @@ function AppRouter() {
           element={<RegisterPage />}
         />
 
+
+
         <Route
-          element={
-            <ProtectedRoute
-              allowedRoles={['CLIENT']}
-              disallowedRoles={['PROVIDER']}
-            />
-          }
-        >
-          <Route
-            path="/registro-trabajador"
-            element={<WorkerRegisterPage />}
-          />
-        </Route>
+          path="/registro-trabajador"
+          element={<WorkerRegisterPage />}
+        />
+
 
         <Route element={<ProtectedRoute />}>
           <Route
