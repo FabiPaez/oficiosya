@@ -1,5 +1,10 @@
+const API_URL = import.meta.env.VITE_API_URL?.replace(/\/+$/, '')
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+if (!API_URL) {
+  throw new Error('Falta configurar VITE_API_URL')
+}
+
+export const API_BASE_URL = `${API_URL}/api`
 
 export const ACCESS_TOKEN_KEY = 'oficiosya-access-token'
 

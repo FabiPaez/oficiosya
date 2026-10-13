@@ -1,4 +1,3 @@
-
 import { mockFavorites } from '../data/mockFavorites'
 import { mockWorkers } from '../data/mockWorkers'
 import type { Favorite } from '../types/favorite'
