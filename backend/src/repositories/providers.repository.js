@@ -104,26 +104,36 @@ export async function listProviders() {
 
   let services = [];
 
+
   if (serviceIds.length > 0) {
     const { data, error } = await supabase
       .from('services')
       .select(`
-        id,
-        category_id,
-        name,
-        description,
-        categories (
-          id,
-          name
-        )
+  id,
+    category_id,
+    name,
+    description,
+    categories(
+      id,
+      name
+    )
       `)
       .in('id', serviceIds)
       .eq('is_active', true);
+
+    console.log('[DIAGNÓSTICO providers] Servicios:', {
+      idsBuscados: serviceIds,
+      cantidad: data?.length ?? 0,
+      datos: data,
+      error,
+    });
 
     if (error) throw error;
 
     services = data ?? [];
   }
+
+
 
   const servicesById = new Map(
     services.map((service) => [service.id, service]),
