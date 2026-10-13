@@ -79,13 +79,22 @@ export async function listProviders() {
 
   const providerIds = providers.map((provider) => provider.id);
 
+
   const { data: providerServices, error: associationsError } = await supabase
     .from('provider_services')
     .select('provider_id, service_id, price_from, price_to, description')
     .in('provider_id', providerIds)
     .eq('is_active', true);
 
+  console.log('[DIAGNÓSTICO providers] Asociaciones:', {
+    cantidad: providerServices?.length ?? 0,
+    datos: providerServices,
+    error: associationsError,
+  });
+
   if (associationsError) throw associationsError;
+
+
 
   const serviceIds = [
     new Set(
