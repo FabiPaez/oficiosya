@@ -31,7 +31,7 @@ function AppRouter() {
         />
 
         <Route
-          path="/categoria/:id"
+          path="/categorias/:id"
           element={<CategoryPage />}
         />
 
