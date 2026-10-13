@@ -238,6 +238,226 @@ p {
   margin-inline: auto;
 }
 
+/* =========================
+   Navbar
+   ========================= */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-surface, #ffffff);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 4%);
+}
+
+.navbar-inner {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.navbar-brand {
+  color: var(--color-primary, #18794e);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.navbar-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--color-text, #374151);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.navbar-nav a:hover {
+  color: var(--color-primary, #18794e);
+  background: var(--color-primary-light, #edf7f0);
+}
+
+.navbar-nav a:focus-visible,
+.navbar-brand:focus-visible,
+.navbar-logout:focus-visible {
+  outline: 3px solid var(--color-primary, #18794e);
+  outline-offset: 3px;
+}
+
+.navbar-logout {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text, #374151);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.navbar-logout:hover {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* =========================
+   Footer
+   ========================= */
+
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-layout>main {
+  flex: 1;
+}
+
+.footer {
+  margin-top: 48px;
+  padding: 24px 0;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.footer p {
+  margin: 0;
+}
+
+/* =========================
+   Adaptación a celulares
+   ========================= */
+
+@media (max-width: 640px) {
+  .navbar-inner {
+    min-height: auto;
+    padding-block: 14px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .navbar-nav {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .navbar-nav a {
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: 0.9rem;
+  }
+
+  .navbar-logout {
+    min-height: 40px;
+    padding-inline: 10px;
+  }
+
+  .footer-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Botón hamburguesa: oculto en escritorio */
+.navbar-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-surface, #ffffff);
+  cursor: pointer;
+}
+
+.navbar-toggle span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin: 4px 0;
+  border-radius: 2px;
+  background: var(--color-text, #374151);
+}
+
+/* Menú móvil */
+@media (max-width: 640px) {
+  .navbar-inner {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .navbar-toggle {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .navbar-nav {
+    display: none;
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+  }
+
+  .navbar-nav.is-open {
+    display: flex;
+  }
+
+  .navbar-nav a,
+  .navbar-nav .navbar-logout {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+
 /* Botones */
 
 .button {
