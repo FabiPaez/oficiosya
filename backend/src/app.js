@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import env from './config/env.js';
 
 import authRoutes from './routes/auth.routes.js';
 import categoriesRoutes from './routes/categories.routes.js';
@@ -21,7 +22,9 @@ const app = express();
 
 app.use(helmet());
 
-app.use(cors());
+app.use(cors({
+  origin: env.frontendUrl
+}));
 
 app.use(express.json());
 
