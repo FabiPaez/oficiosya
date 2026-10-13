@@ -88,7 +88,7 @@ export async function listProviders() {
   if (associationsError) throw associationsError;
 
   const serviceIds = [
-    new Set(
+    ...new Set(
       (providerServices ?? []).map((item) => Number(item.service_id)),
     ),
   ].filter(Number.isSafeInteger);
