@@ -46,6 +46,7 @@ function getRelevanceScore(
   const description = normalizeText(worker.description)
 
   const categories = worker.categories.map(normalizeText)
+  const categoryNames = (worker.categoryNames ?? []).map(normalizeText)
 
   const zones = worker.zones.map(normalizeText)
 
@@ -54,7 +55,7 @@ function getRelevanceScore(
   }
 
   if (
-    categories.some(
+    [...categories, ...categoryNames].some(
       (category) => category === query,
     )
   ) {
@@ -66,8 +67,8 @@ function getRelevanceScore(
   }
 
   if (
-    categories.some((category) =>
-      category.startsWith(query),
+    [...categories, ...categoryNames].some(
+      (category) => category === query,
     )
   ) {
     return 0.85
@@ -78,8 +79,8 @@ function getRelevanceScore(
   }
 
   if (
-    categories.some((category) =>
-      category.includes(query),
+    [...categories, ...categoryNames].some(
+      (category) => category === query,
     )
   ) {
     return 0.75

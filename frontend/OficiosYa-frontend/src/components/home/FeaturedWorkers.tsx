@@ -117,7 +117,9 @@ function FeaturedWorkers() {
                 </h3>
 
                 <p>
-                  {worker.categories.join(' · ')}
+                  {(worker.categoryNames ?? worker.categories)
+                    .map((categoryId) => categoryId)
+                    .join(' · ')}
                 </p>
 
                 <WorkerRating
