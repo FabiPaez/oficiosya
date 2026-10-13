@@ -65,34 +65,15 @@ export async function registerProvider(supabaseClient, providerData) {
 }
 
 export async function listProviders() {
-  const { data: providers, error } = await supabase
-    .from('public_provider_profiles')
-    .select(
-      'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
-    )
-    .order('first_name', { ascending: true })
-    .order('last_name', { ascending: true });
+const { data, error } = await supabase
+.from('public_provider_profiles')
+.select(
+'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
+)
+.order('first_name', { ascending: true })
+.order('last_name', { ascending: true });
 
-  if (error) throw error;
+if (error) throw error;
 
-  if (!providers?.length) return [];
-
-  const { data: adminRoles, error: rolesError } = await supabase
-    .from('user_roles')
-    .select('user_id, roles!inner(name)')
-    .eq('roles.name', 'ADMIN')
-    .in(
-      'user_id',
-      providers.map((provider) => provider.id),
-    );
-
-  if (rolesError) throw rolesError;
-
-  const adminIds = new Set(
-    (adminRoles ?? []).map((role) => role.user_id),
-  );
-
-  return providers.filter(
-    (provider) => !adminIds.has(provider.id),
-  );
+return data ?? [];
 }
