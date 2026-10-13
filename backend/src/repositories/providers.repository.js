@@ -65,15 +65,106 @@ export async function registerProvider(supabaseClient, providerData) {
 }
 
 export async function listProviders() {
-const { data, error } = await supabase
-.from('public_provider_profiles')
-.select(
-'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
-)
-.order('first_name', { ascending: true })
-.order('last_name', { ascending: true });
+  const { data: providers, error: providersError } = await supabase
+    .from('public_provider_profiles')
+    .select(
+      'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
+    )
+    .order('first_name', { ascending: true })
+    .order('last_name', { ascending: true });
 
-if (error) throw error;
+  if (providersError) throw providersError;
 
-return data ?? [];
+  if (!providers?.length) return [];
+
+  const providerIds = providers.map((provider) => provider.id);
+
+  const { data: providerServices, error: associationsError } = await supabase
+    .from('provider_services')
+    .select('provider_id, service_id, price_from, price_to, description')
+    .in('provider_id', providerIds)
+    .eq('is_active', true);
+
+  if (associationsError) throw associationsError;
+
+  const serviceIds = [
+    new Set((providerServices ?? []).map((item) => item.service_id)),
+  ];
+
+  let services = [];
+
+  if (serviceIds.length > 0) {
+    const { data, error } = await supabase
+      .from('services')
+      .select(`
+        id,
+        category_id,
+        name,
+        description,
+        categories (
+          id,
+          name
+        )
+      `)
+      .in('id', serviceIds)
+      .eq('is_active', true);
+
+    if (error) throw error;
+
+    services = data ?? [];
+  }
+
+  const servicesById = new Map(
+    services.map((service) => [service.id, service]),
+  );
+
+  const servicesByProvider = new Map();
+
+  for (const association of providerServices ?? []) {
+    const service = servicesById.get(association.service_id);
+
+    if (!service) continue;
+
+    const category = Array.isArray(service.categories)
+      ? service.categories[0]
+      : service.categories;
+
+    // Evita mostrar servicios cuya categoría no está disponible públicamente.
+    if (!category?.name) continue;
+
+    const mappedService = {
+      id: service.id,
+      name: service.name,
+      description: service.description ?? association.description ?? null,
+      categoryId: String(service.category_id),
+      categoryName: category.name,
+      priceFrom: association.price_from,
+      priceTo: association.price_to,
+    };
+
+    const providerServiceList =
+      servicesByProvider.get(association.provider_id) ?? [];
+
+    providerServiceList.push(mappedService);
+    servicesByProvider.set(association.provider_id, providerServiceList);
+  }
+
+  return providers.map((provider) => {
+    const providerServiceList = servicesByProvider.get(provider.id) ?? [];
+
+    const categoriesById = new Map();
+
+    for (const service of providerServiceList) {
+      categoriesById.set(service.categoryId, {
+        id: service.categoryId,
+        name: service.categoryName,
+      });
+    }
+
+    return {
+      provider,
+      services: providerServiceList,
+      categories: [...categoriesById.values()],
+    };
+  });
 }
