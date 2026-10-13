@@ -1525,6 +1525,236 @@ p {
   }
 }
 
+.provider-registration {
+  width: 100%;
+  max-width: 860px;
+  margin: 2.5rem auto 4rem;
+  padding: 0 1.25rem;
+}
+
+.provider-registration__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.provider-registration__eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.75rem;
+}
+.provider-registration__header h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.5rem;
+  color: var(--color-text);
+}
+.provider-registration__header p {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+/* Barra de progreso */
+.provider-registration__progress {
+  margin-bottom: 1.5rem;
+}
+.provider-registration__progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+.provider-registration__progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.provider-registration__progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+/* Stepper horizontal */
+.provider-registration__steps {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.provider-registration__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+.provider-registration__step--active {
+  opacity: 1;
+}
+.provider-registration__step--completed {
+  opacity: 0.85;
+}
+.provider-registration__step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+.provider-registration__step--active .provider-registration__step-number {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+.provider-registration__step--completed .provider-registration__step-number {
+  background: var(--color-success);
+  color: var(--color-text-inverse);
+  border-color: var(--color-success);
+}
+.provider-registration__step-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+/* Tarjeta principal del paso */
+.provider-registration__content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem;
+  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 6%);
+}
+.provider-registration__content-heading {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.provider-registration__content-heading h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: var(--color-text);
+}
+.provider-registration__content-heading p {
+  color: var(--color-text-muted);
+  margin: 0;
+  font-size: 0.925rem;
+}
+/* Campos del formulario */
+.provider-registration__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.provider-registration__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.provider-registration__field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.provider-registration__field input[type="text"],
+.provider-registration__field input[type="email"],
+.provider-registration__field input[type="tel"],
+.provider-registration__field input[type="url"],
+.provider-registration__field select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.provider-registration__field input:focus,
+.provider-registration__field select:focus,
+.provider-registration__field textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  outline: none;
+}
+/* Botones de acción (Anterior / Siguiente) */
+.provider-registration__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+.provider-registration__button {
+  min-height: 44px;
+  padding: 0.65rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.provider-registration__button--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: 1px solid transparent;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+.provider-registration__button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+.provider-registration__button--secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border-strong);
+}
+.provider-registration__button--secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+/* Responsividad en móviles */
+@media (max-width: 640px) {
+  .provider-registration {
+    margin-top: 1.5rem;
+  }
+  .provider-registration__content {
+    padding: 1.25rem;
+  }
+  /* En pantallas chicas, ocultar títulos de pasos no activos */
+  .provider-registration__step:not(.provider-registration__step--active) .provider-registration__step-title {
+    display: none;
+  }
+}
 
 .provider-registration__category-section {
   display: flex;
@@ -1621,14 +1851,17 @@ p {
 
 .provider-registration__field textarea {
   box-sizing: border-box;
-  margin: 5px;
-  padding: 5px;
-  width: 95%;
-  height: 160px;
-  min-height: 160px;
-  max-height: 160px;
-  resize: none;
-  overflow-y: auto;
+  width: 100%;
+  min-height: 140px;
+  padding: 0.75rem 0.9rem;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .provider-registration__field input[aria-invalid='true'],
