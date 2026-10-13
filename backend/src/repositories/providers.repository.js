@@ -88,8 +88,10 @@ export async function listProviders() {
   if (associationsError) throw associationsError;
 
   const serviceIds = [
-    new Set((providerServices ?? []).map((item) => item.service_id)),
-  ];
+    new Set(
+      (providerServices ?? []).map((item) => Number(item.service_id)),
+    ),
+  ].filter(Number.isSafeInteger);
 
   let services = [];
 
