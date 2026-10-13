@@ -3,7 +3,9 @@ import {
   registerProviderController,
   getProviderProfileController,
   updateProviderProfileController,
+  listProvidersController,
 } from '../controllers/providers.controller.js';
+
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import {
@@ -12,6 +14,9 @@ import {
 } from '../validators/providers.validator.js';
 
 const router = Router();
+
+// Listado público de prestadores
+router.get('/', listProvidersController);
 
 // Registro como prestador (requiere estar autenticado)
 router.post('/register', authenticate, validate(registerProviderSchema), registerProviderController);

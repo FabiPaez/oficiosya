@@ -63,3 +63,17 @@ export async function registerProvider(supabaseClient, providerData) {
 
   return Array.isArray(data) ? data[0] ?? null : data;
 }
+
+export async function listProviders() {
+const { data, error } = await supabase
+.from('public_provider_profiles')
+.select(
+'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
+)
+.order('first_name', { ascending: true })
+.order('last_name', { ascending: true });
+
+if (error) throw error;
+
+return data ?? [];
+}

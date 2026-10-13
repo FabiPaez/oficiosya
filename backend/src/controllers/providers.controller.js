@@ -3,6 +3,13 @@ import {
   getProviderProfile,
   updateProviderProfileService,
 } from '../services/providers.service.js';
+import {
+  registerAsProvider,
+  getProviderProfile,
+  updateProviderProfileService,
+  listProvidersService,
+} from '../services/providers.service.js';
+
 
 export async function registerProviderController(req, res, next) {
   try {
@@ -56,6 +63,22 @@ export async function updateProviderProfileController(req, res, next) {
       message: 'Perfil de prestador actualizado correctamente',
       data: updated,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listProvidersController(req, res, next) {
+  try {
+    const providers = await listProvidersService();
+
+
+    return res.status(200).json({
+      success: true,
+      data: providers,
+    });
+
+
   } catch (error) {
     next(error);
   }
