@@ -2,11 +2,6 @@ import {
   registerAsProvider,
   getProviderProfile,
   updateProviderProfileService,
-} from '../services/providers.service.js';
-import {
-  registerAsProvider,
-  getProviderProfile,
-  updateProviderProfileService,
   listProvidersService,
 } from '../services/providers.service.js';
 
