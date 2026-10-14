@@ -231,6 +231,17 @@ export const workerService = {
       throw new Error('No se pudo actualizar el perfil profesional.')
     }
 
+
+    const refreshedWorkers = await fetchProviders();
+
+    const refreshedWorker = refreshedWorkers.find(
+      (item) => item.id === id || item.userId === id,
+    );
+
+    if (refreshedWorker) {
+      return refreshedWorker;
+    }
+
     return {
       ...worker,
       description: response.data.description ?? '',
@@ -238,7 +249,9 @@ export const workerService = {
       whatsapp: response.data.phone ?? '',
       department:
         response.data.department ?? response.data.city ?? '',
-    }
+      categories: data.categories,
+    };
+
   },
 
 

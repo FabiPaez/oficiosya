@@ -59,59 +59,29 @@ export async function updateProviderCategories(
     throw new Error('La lista de categorías no es válida.');
   }
 
-  const normalizedIds = [...new Set(categoryIds)];
-
   if (
-    normalizedIds.length === 0 ||
-    normalizedIds.length > 10 ||
-    normalizedIds.some(
+    categoryIds.length === 0 ||
+    categoryIds.length > 10 ||
+    categoryIds.some(
       (id) => !Number.isSafeInteger(id) || id <= 0,
-    )
+    ) ||
+    new Set(categoryIds).size !== categoryIds.length
   ) {
-    throw new Error('Las categorías seleccionadas no son válidas.');
-  }
-
-  const { data: activeCategories, error: categoriesError } =
-    await supabaseClient
-      .from('categories')
-      .select('id')
-      .in('id', normalizedIds)
-      .eq('is_active', true);
-
-  if (categoriesError) {
-    throw categoriesError;
-  }
-
-  if (activeCategories.length !== normalizedIds.length) {
     throw new Error(
-      'Una o más categorías no existen o están inactivas.',
+      'Las categorías seleccionadas no son válidas.',
     );
   }
 
-  const associations = normalizedIds.map((categoryId) => ({
-    provider_id: providerId,
-    category_id: categoryId,
-  }));
+  const { error } = await supabaseClient.rpc(
+    'replace_provider_categories',
+    {
+      p_provider_id: providerId,
+      p_category_ids: categoryIds,
+    },
+  );
 
-  const { error: insertError } = await supabaseClient
-    .from('provider_categories')
-    .upsert(associations, {
-      onConflict: 'provider_id,category_id',
-      ignoreDuplicates: true,
-    });
-
-  if (insertError) {
-    throw insertError;
-  }
-
-  const { error: deleteError } = await supabaseClient
-    .from('provider_categories')
-    .delete()
-    .eq('provider_id', providerId)
-    .not('category_id', 'in', `(${normalizedIds.join(',')})`);
-
-  if (deleteError) {
-    throw deleteError;
+  if (error) {
+    throw error;
   }
 }
 
