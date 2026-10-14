@@ -64,6 +64,7 @@ export async function registerProvider(supabaseClient, providerData) {
   return Array.isArray(data) ? data[0] ?? null : data;
 }
 
+
 export async function listProviders() {
   const { data: providers, error: providersError } = await supabase
     .from('public_provider_profiles')
@@ -79,6 +80,67 @@ export async function listProviders() {
 
   const providerIds = providers.map((provider) => provider.id);
 
+  // 1. Obtener las categorías asignadas directamente a cada prestador.
+  const {
+    data: providerCategories,
+    error: providerCategoriesError,
+  } = await supabase
+    .from('provider_categories')
+    .select('provider_id, category_id')
+    .in('provider_id', providerIds);
+
+  if (providerCategoriesError) throw providerCategoriesError;
+
+  // 2. Consultar únicamente las categorías activas.
+  const categoryIds = [
+    ...new Set(
+      (providerCategories ?? []).map((item) => Number(item.category_id)),
+    ),
+  ].filter(Number.isSafeInteger);
+
+  let categories = [];
+
+  if (categoryIds.length > 0) {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name')
+      .in('id', categoryIds)
+      .eq('is_active', true);
+
+    if (error) throw error;
+
+    categories = data ?? [];
+  }
+
+  const categoriesById = new Map(
+    categories.map((category) => [
+      String(category.id),
+      {
+        id: String(category.id),
+        name: category.name,
+      },
+    ]),
+  );
+
+  const categoriesByProvider = new Map();
+
+  for (const association of providerCategories ?? []) {
+    const category = categoriesById.get(String(association.category_id));
+
+    // No exponer categorías inactivas o que no estén disponibles públicamente.
+    if (!category) continue;
+
+    const providerCategoryList =
+      categoriesByProvider.get(association.provider_id) ?? [];
+
+    providerCategoryList.push(category);
+    categoriesByProvider.set(
+      association.provider_id,
+      providerCategoryList,
+    );
+  }
+
+  // 3. Obtener los servicios asociados, independientemente de las categorías.
   const { data: providerServices, error: associationsError } = await supabase
     .from('provider_services')
     .select('provider_id, service_id, price_from, price_to, description')
@@ -95,29 +157,21 @@ export async function listProviders() {
 
   let services = [];
 
-
   if (serviceIds.length > 0) {
     const { data, error } = await supabase
       .from('services')
       .select(`
-      id,
-      category_id,
-      name,
-      description,
-      categories (
         id,
-        name
-      )
-    `)
+        category_id,
+        name,
+        description,
+        categories (
+          id,
+          name
+        )
+      `)
       .in('id', serviceIds)
       .eq('is_active', true);
-
-    console.log('[DIAGNÓSTICO providers] Servicios:', {
-      idsBuscados: serviceIds,
-      cantidad: data?.length ?? 0,
-      datos: data,
-      error,
-    });
 
     if (error) throw error;
 
@@ -125,13 +179,13 @@ export async function listProviders() {
   }
 
   const servicesById = new Map(
-    services.map((service) => [service.id, service]),
+    services.map((service) => [Number(service.id), service]),
   );
 
   const servicesByProvider = new Map();
 
   for (const association of providerServices ?? []) {
-    const service = servicesById.get(association.service_id);
+    const service = servicesById.get(Number(association.service_id));
 
     if (!service) continue;
 
@@ -139,7 +193,7 @@ export async function listProviders() {
       ? service.categories[0]
       : service.categories;
 
-    // Evita mostrar servicios cuya categoría no está disponible públicamente.
+    // Evitar mostrar servicios cuya categoría no esté disponible públicamente.
     if (!category?.name) continue;
 
     const mappedService = {
@@ -159,22 +213,10 @@ export async function listProviders() {
     servicesByProvider.set(association.provider_id, providerServiceList);
   }
 
-  return providers.map((provider) => {
-    const providerServiceList = servicesByProvider.get(provider.id) ?? [];
-
-    const categoriesById = new Map();
-
-    for (const service of providerServiceList) {
-      categoriesById.set(service.categoryId, {
-        id: service.categoryId,
-        name: service.categoryName,
-      });
-    }
-
-    return {
-      provider,
-      services: providerServiceList,
-      categories: [...categoriesById.values()],
-    };
-  });
+  // 4. Devolver categorías y servicios como datos independientes.
+  return providers.map((provider) => ({
+    provider,
+    services: servicesByProvider.get(provider.id) ?? [],
+    categories: categoriesByProvider.get(provider.id) ?? [],
+  }));
 }

@@ -9,7 +9,7 @@ export interface AuthContextValue {
   loginMock: (user: User) => void
   registerMock: (data: RegisterUserData) => Promise<User | null>
   logoutMock: () => void
-  registerAsProvider: () => void
+  registerAsProvider: () => Promise<void>
 }
 
 export const AuthContext =

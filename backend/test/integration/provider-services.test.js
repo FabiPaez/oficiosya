@@ -3,6 +3,7 @@ import app from '../../src/app.js';
 import { getAdminToken, getClientToken } from '../helpers/auth.helper.js';
 import {
   deleteProviderServicesByIds,
+  deleteProviderCategoriesByUserIds,
   removeProviderRoleByUserIds,
   deleteServicesByIds,
 } from '../helpers/db-cleanup.helper.js';
@@ -15,6 +16,7 @@ afterEach(async () => {
   await deleteProviderServicesByIds(createdProviderServiceIds);
   createdProviderServiceIds = [];
 
+  await deleteProviderCategoriesByUserIds(assignedProviderUserIds);
   await removeProviderRoleByUserIds(assignedProviderUserIds);
   assignedProviderUserIds = [];
 });
@@ -77,7 +79,10 @@ describe('POST /api/provider-services', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador de prueba para validación de precios' });
+      .send({
+        description: 'Prestador de prueba para validación de precios',
+        category_ids: [1],
+      });
 
     assignedProviderUserIds.push(regRes.body.data.id);
 
@@ -99,7 +104,10 @@ describe('POST /api/provider-services', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador para vinculación' });
+      .send({
+        description: 'Prestador para vinculación',
+        category_ids: [1],
+      });
 
     assignedProviderUserIds.push(regRes.body.data.id);
 
@@ -128,7 +136,10 @@ describe('POST /api/provider-services', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador para test de duplicados' });
+      .send({
+        description: 'Prestador para test de duplicados',
+        category_ids: [1],
+      });
 
     assignedProviderUserIds.push(regRes.body.data.id);
 
@@ -161,7 +172,10 @@ describe('GET /api/provider-services/provider/:providerId', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador consulta pública' });
+      .send({
+        description: 'Prestador consulta pública',
+        category_ids: [1],
+      });
 
     const providerId = regRes.body.data.id;
     assignedProviderUserIds.push(providerId);
@@ -195,7 +209,10 @@ describe('PATCH /api/provider-services/:id', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador para update' });
+      .send({
+        description: 'Prestador para update',
+        category_ids: [1],
+      });
 
     assignedProviderUserIds.push(regRes.body.data.id);
 
@@ -247,7 +264,10 @@ describe('DELETE /api/provider-services/:id', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador para soft delete' });
+      .send({
+        description: 'Prestador para soft delete',
+        category_ids: [1],
+      });
 
     assignedProviderUserIds.push(regRes.body.data.id);
 
@@ -273,7 +293,10 @@ describe('DELETE /api/provider-services/:id', () => {
     const regRes = await request(app)
       .post('/api/providers/register')
       .set('Authorization', `Bearer ${clientToken}`)
-      .send({ description: 'Prestador para duplicado de delete' });
+      .send({
+        description: 'Prestador para duplicado de delete',
+        category_ids: [1],
+      });
 
     assignedProviderUserIds.push(regRes.body.data.id);
 

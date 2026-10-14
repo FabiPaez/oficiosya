@@ -11,6 +11,7 @@ export interface RegisterUserData {
   password: string
 }
 
+
 interface AuthResponse {
   success: boolean
   data: {
@@ -18,6 +19,7 @@ interface AuthResponse {
       id: string
       email?: string
       created_at?: string
+      roles?: User['role'][]
     }
     session: {
       access_token: string
@@ -25,6 +27,7 @@ interface AuthResponse {
     }
   }
 }
+
 
 interface ProfileResponse {
   success: boolean
@@ -44,23 +47,38 @@ async function fetchProfile(): Promise<ProfileResponse['data']> {
   return response.data
 }
 
+
 function mapUser(
   authUser: AuthResponse['data']['user'],
   profile: ProfileResponse['data'],
 ): User {
+  const roles = [...new Set<User['role']>(
+    authUser.roles?.length ? authUser.roles : ['CLIENT'],
+  )]
+
+  const role: User['role'] = roles.includes('ADMIN')
+    ? 'ADMIN'
+    : roles.includes('PROVIDER')
+      ? 'PROVIDER'
+      : 'CLIENT'
+
   return {
     id: authUser.id,
     firstName: profile.first_name ?? '',
     lastName: profile.last_name ?? '',
     email: authUser.email ?? '',
     phone: profile.phone ?? '',
-    role: 'CLIENT',
-    roles: ['CLIENT'],
+    role,
+    roles,
     department: profile.department ?? profile.city ?? '',
-    createdAt: profile.created_at ?? authUser.created_at ?? new Date().toISOString(),
+    createdAt:
+      profile.created_at ??
+      authUser.created_at ??
+      new Date().toISOString(),
     active: true,
   }
 }
+
 
 export const authService = {
   async login(email: string, password: string): Promise<User> {

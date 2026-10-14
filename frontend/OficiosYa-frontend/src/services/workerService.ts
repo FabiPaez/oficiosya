@@ -105,6 +105,43 @@ async function fetchProviders(): Promise<Worker[]> {
 }
 
 export const workerService = {
+
+
+  async registerProvider(data: {
+    description: string
+    department: string
+    categoryIds: string[]
+  }): Promise<void> {
+    const categoryIds = data.categoryIds.map(Number)
+
+    if (
+      categoryIds.length === 0 ||
+      categoryIds.some(
+        (id) => !Number.isSafeInteger(id) || id <= 0,
+      ) ||
+      new Set(categoryIds).size !== categoryIds.length
+    ) {
+      throw new Error('Las categorías seleccionadas no son válidas.')
+    }
+
+    const response = await apiFetch<{ success: boolean }>(
+      '/providers/register',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          description: data.description.trim(),
+          city: data.department.trim(),
+          department: data.department.trim(),
+          category_ids: categoryIds,
+        }),
+      },
+    )
+
+    if (!response.success) {
+      throw new Error('No se pudo registrar el perfil profesional.')
+    }
+  },
+
   async getAll(): Promise<Worker[]> {
     return fetchProviders()
   },

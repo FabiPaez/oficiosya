@@ -49,6 +49,7 @@ beforeAll(async () => {
     .send({
       description: 'Prestador para recibir reseñas de prueba',
       city: 'Jáchal',
+      category_ids: [1],
     });
 
   if (providerRes.statusCode === 201) {
