@@ -9,6 +9,8 @@ import {
   WORKER_DAYS_OPTIONS,
   WORKER_SCHEDULE_OPTIONS,
 } from '../constants/workerAvailability'
+import { categoryService } from '../services/categoryService'
+import type { Category } from '../types/category'
 
 function EditWorkerProfilePage() {
   const { user } = useAuth()
@@ -19,6 +21,42 @@ function EditWorkerProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [categoriesLoadError, setCategoriesLoadError] = useState(false)
+
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCategories() {
+      setCategoriesLoading(true)
+      setCategoriesLoadError(false)
+
+      try {
+        const categories = await categoryService.getAll()
+
+        if (!cancelled) {
+          setAvailableCategories(categories)
+        }
+      } catch {
+        if (!cancelled) {
+          setCategoriesLoadError(true)
+        }
+      } finally {
+        if (!cancelled) {
+          setCategoriesLoading(false)
+        }
+      }
+    }
+
+    void loadCategories()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
 
   useEffect(() => {
     let cancelled = false
@@ -362,26 +400,100 @@ function EditWorkerProfilePage() {
 
           <h2>Especialidades y experiencia</h2>
 
-          <div>
-            <label htmlFor="categories">
-              Categorías (separadas por comas)
-            </label>
-            <input
-              id="categories"
-              name="categories"
-              value={form.categories.join(', ')}
-              onChange={(event) =>
-                updateField(
-                  'categories',
-                  event.target.value
-                    .split(',')
-                    .map((category) => category.trim())
-                    .filter(Boolean),
-                )
-              }
-              required
-            />
+
+          <div className="provider-registration__category-section">
+            <p>
+              Seleccioná todas las categorías en las que ofrecés servicios.
+              Podés elegir más de una.
+            </p>
+
+            {categoriesLoading && (
+              <p role="status">Cargando categorías...</p>
+            )}
+
+            {!categoriesLoading && categoriesLoadError && (
+              <div
+                className="provider-registration__category-message"
+                role="alert"
+              >
+                <p>
+                  No pudimos cargar las categorías. Revisá la conexión e
+                  intentá nuevamente.
+                </p>
+                <button
+                  className="provider-registration__button provider-registration__button--secondary"
+                  type="button"
+                  onClick={() => window.location.reload()}
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
+
+            {!categoriesLoading &&
+              !categoriesLoadError &&
+              availableCategories.length === 0 && (
+                <p role="status">
+                  No hay categorías activas disponibles en este momento.
+                </p>
+              )}
+
+            {!categoriesLoading &&
+              !categoriesLoadError &&
+              availableCategories.length > 0 && (
+                <div className="provider-registration__category-grid">
+                  {availableCategories.map((category) => {
+                    const selected = form?.categories.includes(category.id) ?? false
+
+                    return (
+                      <label
+                        key={category.id}
+                        className={`provider-registration__category-option ${selected
+                            ? 'provider-registration__category-option--selected'
+                            : ''
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => {
+                            if (!form) return
+
+                            const updatedCategories = selected
+                              ? form.categories.filter(
+                                (id) => id !== category.id,
+                              )
+                              : [...form.categories, category.id]
+
+                            setForm({
+                              ...form,
+                              categories: updatedCategories,
+                            })
+                            setError('')
+                            setSuccess(false)
+                          }}
+                        />
+
+                        <span className="provider-registration__category-name">
+                          {category.name}
+                        </span>
+
+                        {category.description && (
+                          <span className="provider-registration__category-description">
+                            {category.description}
+                          </span>
+                        )}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+            <p className="provider-registration__selected-count">
+              Categorías seleccionadas: {form?.categories.length ?? 0}
+            </p>
           </div>
+
 
           <div>
             <label htmlFor="experienceYears">
