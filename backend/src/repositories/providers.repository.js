@@ -49,6 +49,73 @@ export async function updateProviderProfile(
   return data;
 }
 
+
+export async function updateProviderCategories(
+  providerId,
+  categoryIds,
+  supabaseClient,
+) {
+  if (!Array.isArray(categoryIds)) {
+    throw new Error('La lista de categorías no es válida.');
+  }
+
+  const normalizedIds = [...new Set(categoryIds)];
+
+  if (
+    normalizedIds.length === 0 ||
+    normalizedIds.length > 10 ||
+    normalizedIds.some(
+      (id) => !Number.isSafeInteger(id) || id <= 0,
+    )
+  ) {
+    throw new Error('Las categorías seleccionadas no son válidas.');
+  }
+
+  const { data: activeCategories, error: categoriesError } =
+    await supabaseClient
+      .from('categories')
+      .select('id')
+      .in('id', normalizedIds)
+      .eq('is_active', true);
+
+  if (categoriesError) {
+    throw categoriesError;
+  }
+
+  if (activeCategories.length !== normalizedIds.length) {
+    throw new Error(
+      'Una o más categorías no existen o están inactivas.',
+    );
+  }
+
+  const associations = normalizedIds.map((categoryId) => ({
+    provider_id: providerId,
+    category_id: categoryId,
+  }));
+
+  const { error: insertError } = await supabaseClient
+    .from('provider_categories')
+    .upsert(associations, {
+      onConflict: 'provider_id,category_id',
+      ignoreDuplicates: true,
+    });
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  const { error: deleteError } = await supabaseClient
+    .from('provider_categories')
+    .delete()
+    .eq('provider_id', providerId)
+    .not('category_id', 'in', `(${normalizedIds.join(',')})`);
+
+  if (deleteError) {
+    throw deleteError;
+  }
+}
+
+
 export async function registerProvider(supabaseClient, providerData) {
   const { data, error } = await supabaseClient.rpc(
     'register_as_provider',

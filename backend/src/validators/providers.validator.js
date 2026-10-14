@@ -38,6 +38,7 @@ export const registerProviderSchema = z.object({
   category_ids: categoryIdsSchema,
 });
 
+
 export const updateProviderProfileSchema = z.object({
   description: z
     .string()
@@ -59,4 +60,13 @@ export const updateProviderProfileSchema = z.object({
     .max(100, 'El departamento no puede superar los 100 caracteres')
     .optional()
     .nullable(),
+
+  phone: z
+    .string()
+    .trim()
+    .max(30, 'El teléfono no puede superar los 30 caracteres')
+    .optional()
+    .nullable(),
+
+  category_ids: categoryIdsSchema.optional(),
 });

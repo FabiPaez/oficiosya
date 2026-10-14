@@ -1,4 +1,3 @@
-
 import { apiFetch } from './api'
 import { mockWorkers } from '../data/mockWorkers'
 import type { Worker, CoverageType } from '../types/worker'
@@ -190,20 +189,58 @@ export const workerService = {
     })
   },
 
+
   async updateMock(
     id: string,
     data: UpdateMockWorkerData,
   ): Promise<Worker | null> {
-    const worker = mockWorkers.find((item) => item.id === id)
+    const workers = await fetchProviders()
+    const worker = workers.find(
+      (item) => item.id === id || item.userId === id,
+    )
 
     if (!worker) {
       return null
     }
 
-    Object.assign(worker, data)
+    const response = await apiFetch<{
+      success: boolean
+      data: {
+        id: string
+        first_name: string
+        last_name: string
+        phone: string | null
+        profile_image_url: string | null
+        description: string | null
+        city: string | null
+        department: string | null
+        created_at?: string
+      }
+    }>('/providers/me', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        description: data.description,
+        department: data.department,
+        city: data.department,
+        phone: data.phone,
+        category_ids: data.categories.map(Number),
+      }),
+    })
 
-    return worker
+    if (!response.success) {
+      throw new Error('No se pudo actualizar el perfil profesional.')
+    }
+
+    return {
+      ...worker,
+      description: response.data.description ?? '',
+      phone: response.data.phone ?? '',
+      whatsapp: response.data.phone ?? '',
+      department:
+        response.data.department ?? response.data.city ?? '',
+    }
   },
+
 
   async createMock(
     data: CreateMockWorkerData,
