@@ -153,11 +153,7 @@ export const authService = {
       const response = await apiFetch<{
         success: boolean
         data: {
-          user: {
-            id: string
-            email?: string
-            created_at?: string
-          }
+          user: AuthResponse['data']['user']
         }
       }>('/auth/me')
 
