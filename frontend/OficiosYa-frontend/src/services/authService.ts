@@ -1,4 +1,3 @@
-
 import type { User } from '../types/user'
 import { ACCESS_TOKEN_KEY, apiFetch } from './api'
 
@@ -81,6 +80,7 @@ function mapUser(
 
 
 export const authService = {
+
   async login(email: string, password: string): Promise<User> {
     const response = await apiFetch<AuthResponse>('/auth/login', {
       method: 'POST',
@@ -96,8 +96,15 @@ export const authService = {
     )
 
     try {
-      const profile = await fetchProfile()
-      return mapUser(response.data.user, profile)
+      const currentUser = await this.getCurrentUser()
+
+      if (!currentUser) {
+        throw new Error(
+          'No se pudo recuperar el perfil después de iniciar sesión.',
+        )
+      }
+
+      return currentUser
     } catch (error) {
       localStorage.removeItem(ACCESS_TOKEN_KEY)
       throw error
