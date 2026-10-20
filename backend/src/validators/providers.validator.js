@@ -69,4 +69,37 @@ export const updateProviderProfileSchema = z.object({
     .nullable(),
 
   category_ids: categoryIdsSchema.optional(),
+
+  coverage: z
+    .enum(['SOLO CENTRO', 'RURAL', 'CENTRO + RURAL'])
+    .optional()
+    .nullable(),
+
+  experience_years: z
+    .string()
+    .regex(/^(?:[0-9]|[1-3][0-9]|40|\+40)$/, 'Los años de experiencia no son válidos')
+    .optional()
+    .nullable(),
+
+  schedule: z
+    .string()
+    .trim()
+    .max(200, 'El horario no puede superar los 200 caracteres')
+    .optional()
+    .nullable(),
+
+  available_days: z
+    .array(
+      z.enum([
+        'Lunes',
+        'Martes',
+        'Miércoles',
+        'Jueves',
+        'Viernes',
+        'Sábado',
+        'Domingo',
+      ]),
+    )
+    .max(7, 'No se pueden seleccionar más de 7 días')
+    .optional(),
 });

@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase.js';
 
+
 export async function findProviderById(
   providerId,
   supabaseClient = supabase,
@@ -7,7 +8,7 @@ export async function findProviderById(
   const { data, error } = await supabaseClient
     .from('public_provider_profiles')
     .select(
-      'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
+      'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at, coverage, experience_years, schedule, available_days',
     )
     .eq('id', providerId)
     .maybeSingle();
@@ -21,7 +22,16 @@ export async function findProviderById(
 
 export async function updateProviderProfile(
   userId,
-  { description, city, department, phone },
+  {
+    description,
+    city,
+    department,
+    phone,
+    coverage,
+    experience_years,
+    schedule,
+    available_days,
+  },
   supabaseClient = supabase,
 ) {
   const updates = {};
@@ -30,6 +40,27 @@ export async function updateProviderProfile(
   if (city !== undefined) updates.city = city;
   if (department !== undefined) updates.department = department;
   if (phone !== undefined) updates.phone = phone;
+  if (coverage !== undefined) updates.coverage = coverage;
+  if (experience_years !== undefined) {
+    updates.experience_years = experience_years;
+  }
+  if (schedule !== undefined) updates.schedule = schedule;
+  if (available_days !== undefined) {
+    updates.available_days = available_days;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select(
+        'id, first_name, last_name, phone, profile_image_url, description, city, department, coverage, experience_years, schedule, available_days',
+      )
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 
   updates.updated_at = new Date().toISOString();
 
@@ -38,7 +69,7 @@ export async function updateProviderProfile(
     .update(updates)
     .eq('id', userId)
     .select(
-      'id, first_name, last_name, phone, profile_image_url, description, city, department',
+      'id, first_name, last_name, phone, profile_image_url, description, city, department, coverage, experience_years, schedule, available_days',
     )
     .single();
 
@@ -101,12 +132,11 @@ export async function registerProvider(supabaseClient, providerData) {
   return Array.isArray(data) ? data[0] ?? null : data;
 }
 
-
 export async function listProviders() {
   const { data: providers, error: providersError } = await supabase
     .from('public_provider_profiles')
     .select(
-      'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at',
+      'id, first_name, last_name, phone, profile_image_url, description, city, department, created_at, coverage, experience_years, schedule, available_days',
     )
     .order('first_name', { ascending: true })
     .order('last_name', { ascending: true });
@@ -117,7 +147,7 @@ export async function listProviders() {
 
   const providerIds = providers.map((provider) => provider.id);
 
-  // 1. Obtener las categorías asignadas directamente a cada prestador.
+  // 1. Obtener las categorías asignadas a cada prestador.
   const {
     data: providerCategories,
     error: providerCategoriesError,
@@ -164,7 +194,6 @@ export async function listProviders() {
   for (const association of providerCategories ?? []) {
     const category = categoriesById.get(String(association.category_id));
 
-    // No exponer categorías inactivas o que no estén disponibles públicamente.
     if (!category) continue;
 
     const providerCategoryList =
@@ -177,7 +206,7 @@ export async function listProviders() {
     );
   }
 
-  // 3. Obtener los servicios asociados, independientemente de las categorías.
+  // 3. Obtener los servicios asociados.
   const { data: providerServices, error: associationsError } = await supabase
     .from('provider_services')
     .select('provider_id, service_id, price_from, price_to, description')
@@ -230,7 +259,6 @@ export async function listProviders() {
       ? service.categories[0]
       : service.categories;
 
-    // Evitar mostrar servicios cuya categoría no esté disponible públicamente.
     if (!category?.name) continue;
 
     const mappedService = {
@@ -250,7 +278,7 @@ export async function listProviders() {
     servicesByProvider.set(association.provider_id, providerServiceList);
   }
 
-  // 4. Devolver categorías y servicios como datos independientes.
+  // 4. Devolver perfiles, categorías y servicios.
   return providers.map((provider) => ({
     provider,
     services: servicesByProvider.get(provider.id) ?? [],
