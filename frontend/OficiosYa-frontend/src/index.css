@@ -3132,3 +3132,14 @@ p {
   gap: 8px;
   margin-top: 16px;
 }
+
+
+.worker-card-actions > .button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
