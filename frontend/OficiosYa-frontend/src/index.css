@@ -939,7 +939,6 @@ p {
   line-height: 1.6;
 }
 
-
 .worker-preview-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -951,6 +950,18 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  height: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.worker-preview-card > .worker-preview-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
   text-align: center;
 }
 
@@ -982,6 +993,8 @@ p {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  flex: 1;
+  min-width: 0;
   text-align: center;
 }
 
@@ -1024,7 +1037,9 @@ p {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
+  box-sizing: border-box;
 }
 
 .worker-card-actions > .button {
@@ -1044,7 +1059,6 @@ p {
 .worker-card-actions > .button:first-child {
   grid-column: 1 / -1;
 }
-
 
 .how-it-works-grid {
   display: grid;
@@ -3332,4 +3346,37 @@ p {
   .category-card:hover {
     transform: none;
   }
+}
+
+
+/* Igualar la altura de las tarjetas en cada fila */
+.worker-preview-grid {
+  align-items: stretch;
+}
+
+/* La tarjeta completa funciona como columna flexible */
+.worker-preview-grid > .worker-preview-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* El contenido interno ocupa el espacio disponible */
+.worker-preview-grid > .worker-preview-card > .worker-preview-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* Empuja las acciones al fondo del contenido */
+.worker-preview-grid .worker-card-actions {
+  margin-top: auto;
+  padding-top: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
