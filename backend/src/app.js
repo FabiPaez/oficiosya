@@ -20,10 +20,21 @@ import { swaggerSpec } from './config/swagger.js';
 
 const app = express();
 
+const allowedOrigins = [
+  env.frontendUrl,
+  'http://localhost:5173',
+];
+
 app.use(helmet());
 
 app.use(cors({
-  origin: env.frontendUrl
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Origen no permitido por CORS'));
+  },
 }));
 
 app.use(express.json());
