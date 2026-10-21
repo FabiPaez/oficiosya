@@ -255,7 +255,10 @@ function WorkerPage() {
             </h1>
 
             <p className="worker-profile-category">
-              {worker.categories.join(' · ')}
+              {(worker.categoryNames?.length
+                ? worker.categoryNames
+                : worker.categories
+              ).join(' · ')}
             </p>
 
             <WorkerRating
