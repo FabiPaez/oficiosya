@@ -3125,3 +3125,10 @@ p {
     align-items: flex-start;
   }
 }
+
+.worker-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}

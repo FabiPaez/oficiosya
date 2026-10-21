@@ -4,6 +4,9 @@ import { categoryService } from '../services/categoryService'
 import { workerService } from '../services/workerService'
 import type { Category } from '../types/category'
 import type { Worker } from '../types/worker'
+import Badge from '../components/ui/Badge'
+import Card from '../components/ui/Card'
+import WorkerRating from '../components/workers/WorkerRating'
 
 function CategoryPage() {
   const { id } = useParams<{ id: string }>()
@@ -83,37 +86,127 @@ function CategoryPage() {
       {error && <p role="alert">{error}</p>}
 
       {!loading && !error && category && (
-        <>
-          <h1>{category.name}</h1>
+        <section className="home-section">
+          <div className="container">
+            <div className="section-heading">
+              <div>
+                <span className="section-eyebrow">Profesionales</span>
+                <h1>{category.name}</h1>
+                {category.description && <p>{category.description}</p>}
+              </div>
+            </div>
 
-          {category.description && <p>{category.description}</p>}
-
-          <section>
             <h2>Trabajadores de esta categoría</h2>
 
             {workers.length === 0 ? (
               <p>
-                Por el momento no hay trabajadores registrados en esta categoría.
+                Por el momento no hay trabajadores registrados en esta
+                categoría.
               </p>
             ) : (
-              <ul>
+              <div className="worker-preview-grid">
                 {workers.map((worker) => (
-                  <li key={worker.id}>
-                    <h3>
-                      {worker.firstName} {worker.lastName}
-                    </h3>
+                  <Card
+                    key={worker.id}
+                    className="worker-preview-card"
+                  >
+                    <div className="worker-preview-photo">
+                      {worker.photoUrl ? (
+                        <img
+                          src={worker.photoUrl}
+                          alt={`${worker.firstName} ${worker.lastName}`}
+                        />
+                      ) : (
+                        <span>
+                          {worker.firstName.charAt(0)}
+                          {worker.lastName.charAt(0)}
+                        </span>
+                      )}
+                    </div>
 
-                    {worker.description && <p>{worker.description}</p>}
+                    <div className="worker-preview-content">
+                      <div className="worker-preview-badges">
+                        {worker.premium && (
+                          <Badge variant="premium">PREMIUM</Badge>
+                        )}
 
-                    {worker.department && <p>{worker.department}</p>}
+                        {worker.ratingAverage >= 4.8 &&
+                          worker.reviewCount >= 3 && (
+                            <Badge variant="excellent">
+                              EXCELENTE
+                            </Badge>
+                          )}
+                      </div>
 
-                    {worker.coverage && <p>Zonas: {worker.coverage}</p>}
-                  </li>
+                      <h3>
+                        {worker.firstName} {worker.lastName}
+                      </h3>
+
+                      <p>
+                        {(worker.categoryNames ?? worker.categories).join(
+                          ' · ',
+                        )}
+                      </p>
+
+                      {worker.description && <p>{worker.description}</p>}
+
+                      {worker.department && <p>{worker.department}</p>}
+
+                      {worker.coverage && (
+                        <p>Zonas: {worker.coverage}</p>
+                      )}
+
+                      <WorkerRating
+                        rating={worker.ratingAverage}
+                        reviewCount={worker.reviewCount}
+                      />
+
+                      <div className="worker-card-actions">
+                        <Link
+                          to={`/trabajador/${worker.id}`}
+                          className="button button-outline"
+                        >
+                          Ver perfil
+                        </Link>
+
+                        {worker.phone.trim() && (
+                          <a
+                            href={`tel:${worker.phone}`}
+                            className="button button-primary"
+                          >
+                            Llamar
+                          </a>
+                        )}
+
+                        {worker.whatsapp.trim() ? (
+                          <a
+                            href={`https://wa.me/${worker.whatsapp.replace(
+                              /\D/g,
+                              '',
+                            )}`}
+                            className="button button-secondary"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            WhatsApp
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            className="button button-secondary"
+                            disabled
+                          >
+                            WhatsApp no disponible
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
                 ))}
-              </ul>
+              </div>
             )}
-          </section>
-        </>
+          </div>
+        </section>
       )}
     </main>
   )
