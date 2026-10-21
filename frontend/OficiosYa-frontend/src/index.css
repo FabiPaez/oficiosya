@@ -939,6 +939,7 @@ p {
   line-height: 1.6;
 }
 
+
 .worker-preview-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -948,15 +949,20 @@ p {
 .worker-preview-card {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 20px;
+  text-align: center;
 }
 
 .worker-preview-photo {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 88px;
   height: 88px;
+  margin-inline: auto;
+  overflow: hidden;
   border-radius: var(--radius-full);
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
@@ -964,30 +970,47 @@ p {
   font-weight: 700;
 }
 
+.worker-preview-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .worker-preview-content {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  width: 100%;
+  text-align: center;
 }
 
 .worker-preview-content h3 {
+  width: 100%;
   margin: 12px 0 6px;
+  text-align: center;
 }
 
 .worker-preview-content p {
+  width: 100%;
   margin: 0;
   color: var(--color-text-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .worker-preview-badges {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
 }
 
 .worker-rating {
+  width: 100%;
   margin: 12px 0 20px;
   font-weight: 700;
+  text-align: center;
 }
 
 .worker-rating span {
@@ -995,6 +1018,33 @@ p {
   color: var(--color-text-muted);
   font-weight: 400;
 }
+
+.worker-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.worker-card-actions > .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 8px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.worker-card-actions > .button:first-child {
+  grid-column: 1 / -1;
+}
+
 
 .how-it-works-grid {
   display: grid;
@@ -3126,19 +3176,160 @@ p {
   }
 }
 
+
 .worker-card-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;  
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  width: 100%;
+  text-align: center;
   margin-top: 16px;
 }
 
 .worker-card-actions > .button {
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 8px;
   text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.worker-card-actions > .button:first-child {
+  grid-column: 1 / -1;
+}
+
+
+/* Página de categorías */
+.categories-page {
+  padding: 40px 0 56px;
+}
+
+.categories-header {
+  max-width: 680px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.categories-header h1 {
+  margin: 8px 0 12px;
+}
+
+.categories-header > p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.categories-message {
+  margin: 32px 0;
+  text-align: center;
+}
+
+.categories-error {
+  color: var(--color-error);
+}
+
+/* Cuadrícula adaptable */
+.categories-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* Tarjetas */
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 24px 20px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.category-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 8%);
+}
+
+.category-card:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.category-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.category-card h2 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+}
+
+.category-card p {
+  flex: 1;
+  margin: 0 0 20px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.category-card-link {
+  margin-top: auto;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Tabletas */
+@media (min-width: 600px) {
+  .categories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Escritorio */
+@media (min-width: 900px) {
+  .categories-page {
+    padding-top: 56px;
+  }
+
+  .categories-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Reduce las animaciones si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce) {
+  .category-card {
+    transition: none;
+  }
+
+  .category-card:hover {
+    transform: none;
+  }
 }
