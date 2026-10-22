@@ -155,12 +155,7 @@ function ProfilePage() {
                     <div>
                       <dt>Departamento</dt>
                       <dd>{worker.department || 'Sin informar'}</dd>
-                    </div>
-
-                    <div>
-                      <dt>Zonas de trabajo</dt>
-                      <dd>{worker.zones.join(', ') || 'Sin informar'}</dd>
-                    </div>
+                    </div>                    
 
                     <div>
                       <dt>Cobertura</dt>
