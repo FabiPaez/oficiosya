@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -14,6 +15,7 @@ import type { Category } from '../types/category'
 import { getZonesFromCoverage } from '../utils/coverageZones'
 
 function EditWorkerProfilePage() {
+  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [worker, setWorker] = useState<Worker | null>(null)
@@ -173,6 +175,16 @@ function EditWorkerProfilePage() {
     return digits.length >= 10 && digits.length <= 13
   }
 
+  function handleCancel() {
+    const confirmed = window.confirm(
+      '¿Querés cancelar el registro? Se perderán los cambios de este formulario.',
+    )
+
+    if (confirmed) {
+      navigate('/mi-perfil')
+    }
+  }
+
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -277,16 +289,17 @@ function EditWorkerProfilePage() {
     <main className="page-container">
       <section className="profile-page">
         <header className="profile-page__header">
-          <h1>Editar perfil profesional</h1>
+          <h2>Editar perfil profesional</h2>
           <p>
             Mantené actualizada la información de tus servicios.
           </p>
+          <div className="provider-registration__step-title"><h3 >{worker.firstName} {worker.lastName} </h3></div>
           <p>
-            <strong>{worker.firstName} {worker.lastName}</strong>
+            
           </p>
         </header>
 
-        <form className="profile-card" onSubmit={handleSubmit} noValidate>
+        <form className="provider-registration__form" onSubmit={handleSubmit} noValidate>
           <h2>Presentación profesional</h2>
 
           <div className="provider-registration__field">
@@ -303,96 +316,103 @@ function EditWorkerProfilePage() {
             />
           </div>
 
-          <h2>Datos de contacto</h2>
+          <div className="provider-registration__step-title"><h2 >Datos de contacto</h2></div>
 
-          <div>
-            <label htmlFor="phone">Teléfono</label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              value={form.phone}
-              onChange={(event) =>
-                updateField('phone', event.target.value)
-              }
-              required
-            />
+          <div className="provider-registration__field">
+            <div>
+              <label htmlFor="phone">Teléfono</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={form.phone}
+                onChange={(event) =>
+                  updateField('phone', event.target.value)
+                }
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="whatsapp">WhatsApp</label>
+              <input
+                id="whatsapp"
+                name="whatsapp"
+                type="tel"
+                value={form.whatsapp}
+                onChange={(event) =>
+                  updateField('whatsapp', event.target.value)
+                }
+              />
+            </div>
+
           </div>
 
-          <div>
-            <label htmlFor="whatsapp">WhatsApp</label>
-            <input
-              id="whatsapp"
-              name="whatsapp"
-              type="tel"
-              value={form.whatsapp}
-              onChange={(event) =>
-                updateField('whatsapp', event.target.value)
-              }
-            />
+          <div className="provider-registration__field">
+
+            <h2>Ubicación y cobertura</h2>
+
+            <div>
+              <label htmlFor="department">Departamento</label>
+              <select
+                id="department"
+                name="department"
+                value={form.department}
+                onChange={(event) =>
+                  updateField('department', event.target.value)
+                }
+                required
+              >
+                <option value="">Seleccioná un departamento</option>
+                <option value="Jáchal">Jáchal</option>
+              </select>
+            </div>
+
+            <fieldset className="provider-registration__coverage">
+              <legend>¿En qué zonas trabajás?</legend>
+
+              <label>
+                <input
+                  type="radio"
+                  name="coverage"
+                  value="SOLO CENTRO"
+                  checked={form.coverage === 'SOLO CENTRO'}
+                  onChange={handleCoverageChange}
+                />
+                <span>Jáchal Centro</span>
+              </label>
+
+              <label>
+                <input
+                  type="radio"
+                  name="coverage"
+                  value="RURAL"
+                  checked={form.coverage === 'RURAL'}
+                  onChange={handleCoverageChange}
+                />
+                <span>Zonas rurales de Jáchal</span>
+              </label>
+
+              <label>
+                <input
+                  type="radio"
+                  name="coverage"
+                  value="CENTRO + RURAL"
+                  checked={form.coverage === 'CENTRO + RURAL'}
+                  onChange={handleCoverageChange}
+                />
+                <span>Centro y zonas rurales</span>
+              </label>
+            </fieldset>
+
+            <p className="provider-registration__field-help">
+              La cobertura se limita a las zonas seleccionadas del departamento.
+            </p>
           </div>
 
 
-          <h2>Ubicación y cobertura</h2>
-
-          <div>
-            <label htmlFor="department">Departamento</label>
-            <select
-              id="department"
-              name="department"
-              value={form.department}
-              onChange={(event) =>
-                updateField('department', event.target.value)
-              }
-              required
-            >
-              <option value="">Seleccioná un departamento</option>
-              <option value="Jáchal">Jáchal</option>
-            </select>
-          </div>
-
-          <fieldset className="provider-registration__coverage">
-            <legend>¿En qué zonas trabajás?</legend>
-
-            <label>
-              <input
-                type="radio"
-                name="coverage"
-                value="SOLO CENTRO"
-                checked={form.coverage === 'SOLO CENTRO'}
-                onChange={handleCoverageChange}
-              />
-              <span>Jáchal Centro</span>
-            </label>
-
-            <label>
-              <input
-                type="radio"
-                name="coverage"
-                value="RURAL"
-                checked={form.coverage === 'RURAL'}
-                onChange={handleCoverageChange}
-              />
-              <span>Zonas rurales de Jáchal</span>
-            </label>
-
-            <label>
-              <input
-                type="radio"
-                name="coverage"
-                value="CENTRO + RURAL"
-                checked={form.coverage === 'CENTRO + RURAL'}
-                onChange={handleCoverageChange}
-              />
-              <span>Centro y zonas rurales</span>
-            </label>
-          </fieldset>
-
-          <p className="provider-registration__field-help">
-            La cobertura se limita a las zonas seleccionadas del departamento.
-          </p>
-
-          <h2>Especialidades y experiencia</h2>
+          <div className="provider-registration__step-title"><h2 >Categorías</h2></div>
+          <p>Elegí los servicios que ofrecés.</p>
 
 
           <div className="provider-registration__category-section">
@@ -489,9 +509,9 @@ function EditWorkerProfilePage() {
           </div>
 
 
-          <div>
+          <div className="provider-registration__field">
             <label htmlFor="experienceYears">
-              Años de experiencia
+              <h3>Años de experiencia</h3>
             </label>
             <select
               id="experienceYears"
@@ -573,19 +593,30 @@ function EditWorkerProfilePage() {
             </p>
           )}
 
+          <div className="provider-registration__actions">
+            <button
+              className="button button-primary"
+              type="submit"
+              disabled={saving}
+            >
+              {saving ? 'Guardando...' : 'Guardar cambios'}
+            </button>
 
-          <button
-            className="button button-primary"
-            type="submit"
-            disabled={saving}
-          >
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </button>
 
+            <Link to="/mi-perfil">
+              Volver a mi perfil
+            </Link>
 
-          <Link to="/mi-perfil">
-            Volver a mi perfil
-          </Link>
+            <button
+              className="provider-registration__button provider-registration__button--secondary"
+              type="button"
+              onClick={handleCancel}
+            >
+              Cancelar
+            </button>
+
+          </div>
+
         </form>
       </section>
     </main>

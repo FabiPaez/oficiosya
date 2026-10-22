@@ -707,7 +707,7 @@ p {
 
 .form-textarea {
   min-height: 120px;
-  resize: vertical;
+  resize: none;
 }
 
 .form-input::placeholder,
@@ -1697,6 +1697,7 @@ p {
   border-color: var(--color-success);
 }
 .provider-registration__step-title {
+  padding-top: 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text);
@@ -1924,7 +1925,7 @@ p {
   color: var(--color-text);
   font: inherit;
   font-size: 0.95rem;
-  resize: vertical;
+  resize: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
