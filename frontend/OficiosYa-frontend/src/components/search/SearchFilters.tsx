@@ -108,10 +108,7 @@ function SearchFilters({
           </option>
           <option value="Zonas rurales">
             Zonas rurales
-          </option>
-          <option value="Otras">
-            Otras
-          </option>
+          </option>          
         </select>
       </div>
 
