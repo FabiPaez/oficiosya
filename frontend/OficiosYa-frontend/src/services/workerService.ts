@@ -3,6 +3,7 @@ import { mockWorkers } from '../data/mockWorkers'
 import type { Worker, CoverageType } from '../types/worker'
 import type { WorkerSearchFilters } from '../types/search'
 import { normalizeText } from '../utils/normalizeText'
+import { getZonesFromCoverage } from '../utils/coverageZones'
 
 export type CreateMockWorkerData = Omit<
   Worker,
@@ -70,9 +71,9 @@ interface ProvidersResponse {
   data: ApiProviderItem[]
 }
 
-
 function mapProviderToWorker(item: ApiProviderItem): Worker {
   const provider = item.provider
+  const coverage = (provider.coverage ?? '') as CoverageType
 
   return {
     id: provider.id,
@@ -83,8 +84,8 @@ function mapProviderToWorker(item: ApiProviderItem): Worker {
     phone: provider.phone ?? '',
     whatsapp: provider.phone ?? '',
     department: provider.department ?? provider.city ?? '',
-    zones: [],
-    coverage: (provider.coverage ?? '') as CoverageType,
+    zones: getZonesFromCoverage(coverage),
+    coverage,
     categories: item.categories.map((category) => category.id),
     categoryNames: item.categories.map((category) => category.name),
     photoUrl: provider.profile_image_url ?? '',
@@ -103,7 +104,6 @@ function mapProviderToWorker(item: ApiProviderItem): Worker {
     active: true,
   }
 }
-
 
 async function fetchProviders(): Promise<Worker[]> {
   const response = await apiFetch<ProvidersResponse>('/providers')

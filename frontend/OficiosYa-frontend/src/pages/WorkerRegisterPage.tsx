@@ -13,6 +13,7 @@ import {
   WORKER_DAYS_OPTIONS,
   WORKER_SCHEDULE_OPTIONS,
 } from '../constants/workerAvailability'
+import { getZonesFromCoverage } from '../utils/coverageZones'
 
 const registrationSteps = [
   {
@@ -356,14 +357,10 @@ function WorkerRegisterPage() {
   function handleCoverageChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
-    const coverage = event.target.value as WorkerRegistrationDraft['coverage']
+    const coverage =
+      event.target.value as WorkerRegistrationDraft['coverage']
 
-    const zones =
-      coverage === 'SOLO CENTRO'
-        ? ['Centro']
-        : coverage === 'RURAL'
-          ? ['Rural']
-          : ['Centro', 'Rural']
+    const zones = getZonesFromCoverage(coverage)
 
     setDraft((previous) => ({
       ...previous,

@@ -11,6 +11,7 @@ import {
 } from '../constants/workerAvailability'
 import { categoryService } from '../services/categoryService'
 import type { Category } from '../types/category'
+import { getZonesFromCoverage } from '../utils/coverageZones'
 
 function EditWorkerProfilePage() {
   const { user } = useAuth()
@@ -144,19 +145,13 @@ function EditWorkerProfilePage() {
     setError('')
   }
 
-
   function handleCoverageChange(
     event: React.ChangeEvent<HTMLInputElement>,
   ) {
     const coverage =
       event.target.value as UpdateMockWorkerData['coverage']
 
-    const zones =
-      coverage === 'SOLO CENTRO'
-        ? ['Centro']
-        : coverage === 'RURAL'
-          ? ['Rural']
-          : ['Centro', 'Rural']
+    const zones = getZonesFromCoverage(coverage)
 
     setForm((current) =>
       current
@@ -171,7 +166,6 @@ function EditWorkerProfilePage() {
     setSuccess(false)
     setError('')
   }
-
 
   function isValidPhoneNumber(value: string): boolean {
     const digits = value.replace(/\D/g, '')
@@ -449,8 +443,8 @@ function EditWorkerProfilePage() {
                       <label
                         key={category.id}
                         className={`provider-registration__category-option ${selected
-                            ? 'provider-registration__category-option--selected'
-                            : ''
+                          ? 'provider-registration__category-option--selected'
+                          : ''
                           }`}
                       >
                         <input

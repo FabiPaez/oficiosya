@@ -155,7 +155,7 @@ function ProfilePage() {
                     <div>
                       <dt>Departamento</dt>
                       <dd>{worker.department || 'Sin informar'}</dd>
-                    </div>                    
+                    </div>                                      
 
                     <div>
                       <dt>Cobertura</dt>
