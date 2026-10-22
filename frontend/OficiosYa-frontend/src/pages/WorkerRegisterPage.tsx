@@ -505,10 +505,15 @@ function WorkerRegisterPage() {
     setIsSubmitting(true)
 
     try {
+
       await workerService.registerProvider({
         description: draft.description.trim(),
         department: draft.department.trim(),
         categoryIds: draft.categories,
+        coverage: draft.coverage,
+        experienceYears: draft.experienceYears,
+        schedule: draft.schedule,
+        availableDays: draft.availableDays,
       })
 
       await registerAsProvider()
@@ -1322,7 +1327,7 @@ function WorkerRegisterPage() {
               aria-live="polite"
             >
               <h3>¡Tu perfil fue creado!</h3>
-              
+
               <p>
                 Tu perfil profesional se registró en el servidor y el sistema
                 confirmó tu rol de prestador. Las categorías seleccionadas
