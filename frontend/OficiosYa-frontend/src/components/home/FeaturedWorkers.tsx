@@ -67,7 +67,7 @@ function FeaturedWorkers() {
   }
 
   return (
-    <section className="home-section">
+    <section className="home-section" >
       <div className="container">
         <div className="section-heading">
           <div>

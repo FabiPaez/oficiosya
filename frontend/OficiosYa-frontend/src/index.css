@@ -3381,3 +3381,7 @@ p {
   width: 100%;
   box-sizing: border-box;
 }
+
+#trabajadores-destacados {
+  scroll-margin-top: 3rem;
+}

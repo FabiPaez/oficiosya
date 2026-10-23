@@ -20,13 +20,21 @@ function Navbar() {
   return (
     <header className="navbar">
       <div className="container navbar-inner">
+
         <Link
           to="/"
           className="navbar-brand"
-          onClick={closeMenu}
+          onClick={() => {
+            closeMenu()
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth',
+            })
+          }}
         >
           OficiosYa
         </Link>
+
 
         <button
           type="button"
@@ -52,6 +60,13 @@ function Navbar() {
 
           <Link to="/categorias" onClick={closeMenu}>
             Categorías
+          </Link>
+
+          <Link
+            to="/#trabajadores-destacados"
+            onClick={closeMenu}
+          >
+            Trabajadores destacados
           </Link>
 
           {!isAuthenticated && (
