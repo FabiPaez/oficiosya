@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import CategoryPreview from '../components/home/CategoryPreview'
+{/* import CategoryPreview from '../components/home/CategoryPreview' */}
 import FeaturedWorkers from '../components/home/FeaturedWorkers'
 import HeroSection from '../components/home/HeroSection'
 import HowItWorks from '../components/home/HowItWorks'
@@ -40,7 +40,7 @@ function HomePage() {
   return (
     <>
       <HeroSection />
-      
+      {/* Luego decidir si lo dejamos o no <CategoryPreview /> */}
 
       <div id="trabajadores-destacados">
         <FeaturedWorkers />
