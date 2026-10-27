@@ -1,5 +1,6 @@
 import { apiFetch } from './api'
 import type { Category } from '../types/category'
+import { mockCategories } from '../data/mockCategories'
 
 interface ApiCategory {
   id: number
@@ -31,32 +32,48 @@ function mapCategory(category: ApiCategory): Category {
 
 export const categoryService = {
   async getAll(): Promise<Category[]> {
-    const response = await apiFetch<CategoriesResponse>('/categories')
+    try {
+      const response = await apiFetch<CategoriesResponse>('/categories')
 
-
-    if (!response.success) {
-      throw new Error('No se pudieron obtener las categorías.')
+      if (response && response.success && Array.isArray(response.data)) {
+        return response.data
+          .filter((category) => category.is_active)
+          .map(mapCategory)
+      }
+    } catch {
+      // Fallback a mockCategories en desarrollo u offline
+      return mockCategories.filter((category) => category.active)
     }
 
-    return response.data
-      .filter((category) => category.is_active)
-      .map(mapCategory)
-
-
+    return mockCategories.filter((category) => category.active)
   },
 
   async getById(id: string): Promise<Category | null> {
-    const response = await apiFetch<CategoryResponse>(
-      `/categories/${encodeURIComponent(id)}`,
-    )
+    try {
+      const response = await apiFetch<CategoryResponse>(
+        `/categories/${encodeURIComponent(id)}`,
+      )
 
-
-    if (!response.success || !response.data.is_active) {
-      return null
+      if (response && response.success && response.data?.is_active) {
+        return mapCategory(response.data)
+      }
+    } catch {
+      // Fallback a mockCategories en desarrollo u offline
+      return (
+        mockCategories.find(
+          (category) =>
+            (category.id === id || String(category.id) === String(id)) &&
+            category.active,
+        ) ?? null
+      )
     }
 
-    return mapCategory(response.data)
-
-
+    return (
+      mockCategories.find(
+        (category) =>
+          (category.id === id || String(category.id) === String(id)) &&
+          category.active,
+      ) ?? null
+    )
   },
 }

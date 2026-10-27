@@ -265,38 +265,48 @@ function EditWorkerProfilePage() {
 
   if (loading) {
     return (
-      <main className="page-container">
-        <h1>Editar perfil profesional</h1>
-        <p role="status">Cargando tus datos profesionales...</p>
-      </main>
+      <div className="page-section">
+        <div className="container">
+          <div className="card" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center', padding: 'var(--space-8)' }}>
+            <h1>Editar perfil profesional</h1>
+            <p role="status">Cargando tus datos profesionales...</p>
+          </div>
+        </div>
+      </div>
     )
   }
 
   if (!worker || !form) {
     return (
-      <main className="page-container">
-        <h1>Editar perfil profesional</h1>
-        <p role="alert">
-          {error ||
-            'No encontramos un perfil profesional asociado a tu cuenta.'}
-        </p>
-        <Link to="/mi-perfil">Volver a mi perfil</Link>
-      </main>
+      <div className="page-section">
+        <div className="container">
+          <div className="card" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center', padding: 'var(--space-8)' }}>
+            <h1>Editar perfil profesional</h1>
+            <p role="alert" style={{ color: 'var(--color-error)', margin: 'var(--space-4) 0' }}>
+              {error ||
+                'No encontramos un perfil profesional asociado a tu cuenta.'}
+            </p>
+            <Link to="/mi-perfil" className="button button-primary">
+              Volver a mi perfil
+            </Link>
+          </div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <main className="page-container">
-      <section className="profile-page">
+    <div className="page-section">
+      <div className="container">
+        <section className="profile-page">
         <header className="profile-page__header">
-          <h2>Editar perfil profesional</h2>
+          <h1>Editar perfil profesional</h1>
           <p>
-            Mantené actualizada la información de tus servicios.
+            Mantené actualizada la información de tus servicios como prestador.
           </p>
-          <div className="provider-registration__step-title"><h3 >{worker.firstName} {worker.lastName} </h3></div>
-          <p>
-            
-          </p>
+          <span className="section-eyebrow" style={{ marginTop: 'var(--space-2)' }}>
+            {worker.firstName} {worker.lastName}
+          </span>
         </header>
 
         <form className="provider-registration__form" onSubmit={handleSubmit} noValidate>
@@ -316,58 +326,58 @@ function EditWorkerProfilePage() {
             />
           </div>
 
-          <div className="provider-registration__step-title"><h2 >Datos de contacto</h2></div>
-
-          <div className="provider-registration__field">
-            <div>
-              <label htmlFor="phone">Teléfono</label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={form.phone}
-                onChange={(event) =>
-                  updateField('phone', event.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="whatsapp">WhatsApp</label>
-              <input
-                id="whatsapp"
-                name="whatsapp"
-                type="tel"
-                value={form.whatsapp}
-                onChange={(event) =>
-                  updateField('whatsapp', event.target.value)
-                }
-              />
-            </div>
-
+          <div className="provider-registration__step-title">
+            <h2>Datos de contacto</h2>
           </div>
 
           <div className="provider-registration__field">
+            <label htmlFor="phone">Teléfono</label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={form.phone}
+              onChange={(event) =>
+                updateField('phone', event.target.value)
+              }
+              required
+            />
+          </div>
 
+          <div className="provider-registration__field">
+            <label htmlFor="whatsapp">WhatsApp</label>
+            <input
+              id="whatsapp"
+              name="whatsapp"
+              type="tel"
+              value={form.whatsapp}
+              onChange={(event) =>
+                updateField('whatsapp', event.target.value)
+              }
+            />
+          </div>
+
+          <div className="provider-registration__step-title">
             <h2>Ubicación y cobertura</h2>
+          </div>
 
-            <div>
-              <label htmlFor="department">Departamento</label>
-              <select
-                id="department"
-                name="department"
-                value={form.department}
-                onChange={(event) =>
-                  updateField('department', event.target.value)
-                }
-                required
-              >
-                <option value="">Seleccioná un departamento</option>
-                <option value="Jáchal">Jáchal</option>
-              </select>
-            </div>
+          <div className="provider-registration__field">
+            <label htmlFor="department">Departamento</label>
+            <select
+              id="department"
+              name="department"
+              value={form.department}
+              onChange={(event) =>
+                updateField('department', event.target.value)
+              }
+              required
+            >
+              <option value="">Seleccioná un departamento</option>
+              <option value="Jáchal">Jáchal</option>
+            </select>
+          </div>
 
+          <div className="provider-registration__field">
             <fieldset className="provider-registration__coverage">
               <legend>¿En qué zonas trabajás?</legend>
 
@@ -509,9 +519,13 @@ function EditWorkerProfilePage() {
           </div>
 
 
+          <div className="provider-registration__step-title">
+            <h2>Años de experiencia</h2>
+          </div>
+
           <div className="provider-registration__field">
             <label htmlFor="experienceYears">
-              <h3>Años de experiencia</h3>
+              Tiempo ejerciendo el oficio
             </label>
             <select
               id="experienceYears"
@@ -535,7 +549,9 @@ function EditWorkerProfilePage() {
             </select>
           </div>
 
-          <h2>Disponibilidad</h2>
+          <div className="provider-registration__step-title">
+            <h2>Disponibilidad</h2>
+          </div>
 
           <fieldset className="provider-registration__coverage">
             <legend>Horario de atención</legend>
@@ -593,7 +609,7 @@ function EditWorkerProfilePage() {
             </p>
           )}
 
-          <div className="provider-registration__actions">
+          <div className="provider-registration__actions" style={{ gap: '1rem', flexWrap: 'wrap' }}>
             <button
               className="button button-primary"
               type="submit"
@@ -602,24 +618,19 @@ function EditWorkerProfilePage() {
               {saving ? 'Guardando...' : 'Guardar cambios'}
             </button>
 
-
-            <Link to="/mi-perfil">
-              Volver a mi perfil
-            </Link>
-
             <button
-              className="provider-registration__button provider-registration__button--secondary"
+              className="button button-outline"
               type="button"
               onClick={handleCancel}
             >
               Cancelar
             </button>
-
           </div>
 
         </form>
-      </section>
-    </main>
+        </section>
+      </div>
+    </div>
   )
 }
 

@@ -7,7 +7,7 @@ function MainLayout() {
     <div className="app-layout">
       <Navbar />
 
-      <main>
+      <main className="app-main">
         <Outlet />
       </main>
 

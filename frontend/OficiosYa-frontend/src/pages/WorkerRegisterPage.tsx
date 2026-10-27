@@ -567,7 +567,7 @@ function WorkerRegisterPage() {
   }
 
   return (
-    <main className="provider-registration">
+    <div className="provider-registration">
       <header className="provider-registration__header">
         <span className="provider-registration__eyebrow">
           REGISTRO DE TRABAJADOR
@@ -1442,7 +1442,7 @@ function WorkerRegisterPage() {
           )
         )}
       </section>
-    </main>
+    </div>
   )
 }
 

@@ -81,7 +81,7 @@ function LoginPage() {
   }
 
   return (
-    <main className="login-page">
+    <div className="login-page">
       <div className="login-container">
         <div className="login-layout">
           {/* Columna Izquierda: Información de Bienvenida */}
@@ -376,7 +376,7 @@ function LoginPage() {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 

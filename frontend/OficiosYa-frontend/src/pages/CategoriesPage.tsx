@@ -41,7 +41,7 @@ function CategoriesPage() {
   }, [])
 
   return (
-    <main className="categories-page">
+    <div className="categories-page">
       <div className="container">
         <header className="categories-header">
           <span className="section-eyebrow">Encontrá profesionales</span>
@@ -98,7 +98,7 @@ function CategoriesPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   )
 }
 

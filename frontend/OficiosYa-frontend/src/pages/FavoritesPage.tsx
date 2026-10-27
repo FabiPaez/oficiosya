@@ -84,7 +84,7 @@ function FavoritesPage() {
   }
 
   return (
-    <main className="page-section">
+    <div className="page-section">
       <div className="container">
         <header className="page-heading">
           <span className="section-eyebrow">
@@ -150,7 +150,7 @@ function FavoritesPage() {
           </section>
         )}
       </div>
-    </main>
+    </div>
   )
 }
 

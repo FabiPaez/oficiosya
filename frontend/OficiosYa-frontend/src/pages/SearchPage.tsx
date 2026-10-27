@@ -149,7 +149,7 @@ function SearchPage() {
   }
 
   return (
-    <main className="page-section">
+    <div className="page-section">
       <div className="container">
         <div className="page-heading">
           <span className="section-eyebrow">
@@ -226,7 +226,7 @@ function SearchPage() {
           )}
         </section>
       </div>
-    </main>
+    </div>
   )
 }
 

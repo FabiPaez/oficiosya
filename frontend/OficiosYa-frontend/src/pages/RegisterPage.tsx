@@ -113,7 +113,7 @@ function RegisterPage() {
   }
 
   return (
-    <main className="register-page">
+    <div className="register-page">
       <div className="register-container">
         <div className="register-layout">
           {/* Columna Izquierda: Presentación y beneficios */}
@@ -781,7 +781,7 @@ function RegisterPage() {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 

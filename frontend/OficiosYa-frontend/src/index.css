@@ -52,6 +52,7 @@
   --color-text-secondary: #475569;
   --color-text-muted: #64748b;
   --color-text-inverse: #ffffff;
+  --color-text-on-primary: #ffffff;
 
   /* Bordes */
   --color-border: #e2e8f0;
@@ -145,6 +146,7 @@
   --color-text-secondary: #cbd5e1;
   --color-text-muted: #94a3b8;
   --color-text-inverse: #0f172a;
+  --color-text-on-primary: #ffffff;
 
   --color-border: #334155;
   --color-border-strong: #475569;
@@ -348,9 +350,9 @@ p {
 }
 
 .navbar-logout:hover {
-  border-color: #dc2626;
-  background: #fef2f2;
-  color: #b91c1c;
+  border-color: var(--color-error);
+  background: var(--color-error-soft);
+  color: var(--color-error);
 }
 
 /* =========================
@@ -3384,4 +3386,23 @@ p {
 
 #trabajadores-destacados {
   scroll-margin-top: 3rem;
+}
+/* =========================
+   Favoritos
+   ========================= */
+
+.favorite-worker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+
+.favorite-worker > .card,
+.favorite-worker > .worker-preview-card {
+  flex: 1;
+}
+
+.favorite-worker .button {
+  width: 100%;
 }

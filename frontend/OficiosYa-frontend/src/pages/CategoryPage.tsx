@@ -4,8 +4,7 @@ import { categoryService } from '../services/categoryService'
 import { workerService } from '../services/workerService'
 import type { Category } from '../types/category'
 import type { Worker } from '../types/worker'
-import Badge from '../components/ui/Badge'
-import Card from '../components/ui/Card'
+import WorkerCard from '../components/workers/WorkerCard'
 
 function CategoryPage() {
   const { id } = useParams<{ id: string }>()
@@ -104,91 +103,10 @@ function CategoryPage() {
             ) : (
               <div className="worker-preview-grid">
                 {workers.map((worker) => (
-                  <Card
+                  <WorkerCard
                     key={worker.id}
-                    className="worker-preview-card"
-                  >
-                    <div className="worker-preview-photo">
-                      {worker.photoUrl ? (
-                        <img
-                          src={worker.photoUrl}
-                          alt={`${worker.firstName} ${worker.lastName}`}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
-                        />
-                      ) : (
-                        <span>
-                          {worker.firstName.charAt(0)}
-                          {worker.lastName.charAt(0)}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="worker-preview-content">
-                      <div className="worker-preview-badges">
-                        {worker.premium && (
-                          <Badge variant="premium">PREMIUM</Badge>
-                        )}
-                      </div>
-
-                      <h3>
-                        {worker.firstName} {worker.lastName}
-                      </h3>
-
-                      <p>
-                        {(worker.categoryNames ?? worker.categories).join(
-                          ' · ',
-                        )}
-                      </p>
-
-                      {worker.description && <p>{worker.description}</p>}
-
-                      {worker.department && <p>{worker.department}</p>}
-
-                      {worker.coverage && (
-                        <p>Zonas: {worker.coverage}</p>
-                      )}
-
-                      <div className="worker-card-actions">
-                        <Link
-                          to={`/trabajador/${worker.id}`}
-                          className="button button-outline"
-                        >
-                          Ver perfil
-                        </Link>
-
-                        {worker.phone.trim() && (
-                          <a
-                            href={`tel:${worker.phone}`}
-                            className="button button-primary"
-                          >
-                            Llamar
-                          </a>
-                        )}
-
-                        {worker.whatsapp.trim() ? (
-                          <a
-                            href={`https://wa.me/${worker.whatsapp.replace(
-                              /\D/g,
-                              '',
-                            )}`}
-                            className="button button-secondary"
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            WhatsApp
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            className="button button-secondary"
-                            disabled
-                          >
-                            WhatsApp no disponible
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
+                    worker={worker}
+                  />
                 ))}
               </div>
             )}
