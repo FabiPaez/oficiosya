@@ -31,7 +31,7 @@ export async function authenticate(req, res, next) {
             Authorization: `Bearer ${token}`,
           },
         },
-      }
+      },
     );
 
     const {

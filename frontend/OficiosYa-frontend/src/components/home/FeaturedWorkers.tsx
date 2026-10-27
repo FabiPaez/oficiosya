@@ -122,12 +122,45 @@ function FeaturedWorkers() {
                     .join(' · ')}
                 </p>
 
-                <Link
-                  to={`/trabajador/${worker.id}`}
-                  className="button button-outline"
-                >
-                  Ver perfil
-                </Link>
+                <div className="worker-card-actions">
+                  <Link
+                    to={`/trabajador/${worker.id}`}
+                    className="button button-outline"
+                  >
+                    Ver perfil
+                  </Link>
+
+                  {worker.phone.trim() && (
+                    <a
+                      href={`tel:${worker.phone}`}
+                      className="button button-primary"
+                    >
+                      Llamar
+                    </a>
+                  )}
+
+                  {worker.whatsapp.trim() ? (
+                    <a
+                      href={`https://wa.me/${worker.whatsapp.replace(
+                        /\D/g,
+                        '',
+                      )}`}
+                      className="button button-secondary"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      WhatsApp
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      className="button button-secondary"
+                      disabled
+                    >
+                      WhatsApp no disponible
+                    </button>
+                  )}
+                </div>
               </div>
             </Card>
           ))}

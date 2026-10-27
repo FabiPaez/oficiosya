@@ -1,8 +1,9 @@
 import {
-findProviderById,
-registerProvider,
-updateProviderProfile as updateRepo,
-listProviders,
+  findProviderById,
+  registerProvider,
+  updateProviderProfile as updateRepo,
+  updateProviderCategories,
+  listProviders,
 } from '../repositories/providers.repository.js';
 
 import { AppError } from '../utils/AppError.js';
@@ -59,6 +60,7 @@ export async function getProviderProfile(
   return provider;
 }
 
+
 export async function updateProviderProfileService(
   userId,
   updateData,
@@ -76,8 +78,29 @@ export async function updateProviderProfileService(
     );
   }
 
-  return updateRepo(userId, updateData, supabaseClient);
+  const { category_ids: categoryIds, ...profileData } = updateData;
+
+  let updatedProfile = provider;
+
+  if (Object.keys(profileData).length > 0) {
+    updatedProfile = await updateRepo(
+      userId,
+      profileData,
+      supabaseClient,
+    );
+  }
+
+  if (categoryIds !== undefined) {
+    await updateProviderCategories(
+      userId,
+      categoryIds,
+      supabaseClient,
+    );
+  }
+
+  return updatedProfile;
 }
+
 
 export async function listProvidersService() {
   return await listProviders();

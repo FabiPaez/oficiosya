@@ -1,11 +1,15 @@
 import request from 'supertest';
 import app from '../../src/app.js';
 import { getClientToken } from '../helpers/auth.helper.js';
-import { removeProviderRoleByUserIds } from '../helpers/db-cleanup.helper.js';
+import {
+  deleteProviderCategoriesByUserIds,
+  removeProviderRoleByUserIds,
+} from '../helpers/db-cleanup.helper.js';
 
 let assignedProviderUserIds = [];
 
 afterEach(async () => {
+  await deleteProviderCategoriesByUserIds(assignedProviderUserIds);
   await removeProviderRoleByUserIds(assignedProviderUserIds);
   assignedProviderUserIds = [];
 });
@@ -23,6 +27,7 @@ describe('POST /api/providers/register', () => {
       .send({
         description: 'Electricista matriculado',
         city: 'San José de Jáchal',
+        category_ids: [1],
       });
 
     expect(response.statusCode).toBe(401);
@@ -38,6 +43,7 @@ describe('POST /api/providers/register', () => {
         description: 'Instalaciones eléctricas y reparaciones en general.',
         city: 'San José de Jáchal',
         department: 'Jáchal',
+        category_ids: [1],
       });
 
     expect(response.statusCode).toBe(201);
@@ -56,8 +62,11 @@ describe('POST /api/providers/register', () => {
       .set('Authorization', `Bearer ${clientToken}`)
       .send({
         description: 'Primera alta',
+        category_ids: [1],
       });
 
+    expect(firstRes.statusCode).toBe(201);
+    expect(firstRes.body.data?.id).toBeDefined();
     assignedProviderUserIds.push(firstRes.body.data.id);
 
     const secondRes = await request(app)
@@ -65,6 +74,7 @@ describe('POST /api/providers/register', () => {
       .set('Authorization', `Bearer ${clientToken}`)
       .send({
         description: 'Intento de duplicación',
+        category_ids: [1],
       });
 
     expect(secondRes.statusCode).toBe(409);
@@ -96,6 +106,7 @@ describe('GET /api/providers/:id', () => {
       .send({
         description: 'Perfil público de prueba',
         city: 'Jáchal',
+        category_ids: [1],
       });
 
     const providerId = registerRes.body.data.id;
@@ -125,6 +136,7 @@ describe('PATCH /api/providers/me', () => {
       .set('Authorization', `Bearer ${clientToken}`)
       .send({
         description: 'Descripción previa',
+        category_ids: [1],
       });
 
     assignedProviderUserIds.push(registerRes.body.data.id);
@@ -135,6 +147,7 @@ describe('PATCH /api/providers/me', () => {
       .send({
         description: 'Descripción actualizada con éxito',
         city: 'San José de Jáchal',
+        category_ids: [1],
       });
 
     expect(response.statusCode).toBe(200);

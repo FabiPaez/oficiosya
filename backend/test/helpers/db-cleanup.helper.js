@@ -33,6 +33,26 @@ export async function deleteCategoriesByIds(ids) {
   }
 }
 
+/**
+ * Elimina las categorías asociadas a los prestadores de prueba.
+ * @param {string[]} userIds
+ */
+export async function deleteProviderCategoriesByUserIds(userIds) {
+  if (!userIds || userIds.length === 0) return;
+
+  const { error } = await supabaseAdmin
+    .from('provider_categories')
+    .delete()
+    .in('provider_id', userIds);
+
+  if (error) {
+    console.error(
+      '[cleanup] Error al limpiar provider_categories:',
+      error.message
+    );
+  }
+}
+
 // Agregamos la función removeProviderRoleByUserIds para remover el rol PROVIDER en user_roles
 //para que el usuario de prueba vuelva a ser puramente CLIENT
 

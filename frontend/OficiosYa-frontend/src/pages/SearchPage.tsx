@@ -20,7 +20,6 @@ const INITIAL_FILTERS: WorkerSearchFilters = {
 const VALID_ZONES = [
   'Jáchal Centro',
   'Zonas rurales',
-  'Otras',
 ]
 
 function SearchPage() {

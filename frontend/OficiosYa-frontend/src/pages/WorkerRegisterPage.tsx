@@ -13,6 +13,7 @@ import {
   WORKER_DAYS_OPTIONS,
   WORKER_SCHEDULE_OPTIONS,
 } from '../constants/workerAvailability'
+import { getZonesFromCoverage } from '../utils/coverageZones'
 
 const registrationSteps = [
   {
@@ -356,14 +357,10 @@ function WorkerRegisterPage() {
   function handleCoverageChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
-    const coverage = event.target.value as WorkerRegistrationDraft['coverage']
+    const coverage =
+      event.target.value as WorkerRegistrationDraft['coverage']
 
-    const zones =
-      coverage === 'SOLO CENTRO'
-        ? ['Centro']
-        : coverage === 'RURAL'
-          ? ['Rural']
-          : ['Centro', 'Rural']
+    const zones = getZonesFromCoverage(coverage)
 
     setDraft((previous) => ({
       ...previous,
@@ -489,6 +486,7 @@ function WorkerRegisterPage() {
   }
 
 
+
   async function handleConfirmRegistration() {
     if (isSubmitting || registrationComplete) {
       return
@@ -504,37 +502,32 @@ function WorkerRegisterPage() {
     setIsSubmitting(true)
 
     try {
-      await workerService.createMock({
-        userId: user.id,
-        firstName: draft.firstName.trim(),
-        lastName: draft.lastName.trim(),
+
+      await workerService.registerProvider({
         description: draft.description.trim(),
-        phone: draft.phone.trim(),
-        whatsapp: draft.whatsapp.trim(),
-        department: 'Jáchal',
-        zones: draft.zones,
+        department: draft.department.trim(),
+        categoryIds: draft.categories,
         coverage: draft.coverage,
-        categories: draft.categories,
-        photoUrl: draft.photoUrl,
-        workPhotoUrls: draft.workPhotoUrls,
-        experienceYears:
-          draft.experienceYears === '+40'
-            ? '+40'
-            : Number(draft.experienceYears),
+        experienceYears: draft.experienceYears,
         schedule: draft.schedule,
         availableDays: draft.availableDays,
       })
 
-      registerAsProvider()
+      await registerAsProvider()
+
       setRegistrationComplete(true)
-    } catch {
-      window.alert(
-        'No se pudo crear el perfil. Intentá nuevamente.',
-      )
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'No se pudo registrar el perfil profesional.'
+
+      window.alert(message)
     } finally {
       setIsSubmitting(false)
     }
   }
+
 
   function handleNext() {
     if (currentStep === 0) {
@@ -1333,8 +1326,9 @@ function WorkerRegisterPage() {
               <h3>¡Tu perfil fue creado!</h3>
 
               <p>
-                El perfil profesional se registró en los datos simulados
-                de OficiosYa. Todavía no se ha guardado en un servidor.
+                Tu perfil profesional se registró en el servidor y el sistema
+                confirmó tu rol de prestador. Las categorías seleccionadas
+                quedaron asociadas a tu cuenta.
               </p>
 
               <button

@@ -53,12 +53,29 @@ export async function login(req, res, next) {
   }
 };
 
+
 export async function getMe(req, res, next) {
   try {
+    const { data, error } = await req.supabase
+      .from('user_roles')
+      .select('roles ( name )')
+      .eq('user_id', req.user.id);
+
+    if (error) {
+      return next(error);
+    }
+
+    const roles = (data ?? [])
+      .filter((item) => item.roles?.name)
+      .map((item) => item.roles.name);
+
     return res.status(200).json({
       success: true,
       data: {
-        user: req.user,
+        user: {
+          ...req.user,
+          roles,
+        },
       },
     });
   } catch (error) {

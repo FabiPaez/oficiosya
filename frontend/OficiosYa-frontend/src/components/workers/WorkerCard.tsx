@@ -11,8 +11,8 @@ function WorkerCard({ worker }: WorkerCardProps) {
   const categoriesList = worker.categoryNames ?? worker.categories
 
   return (
-    <Card className="worker-card">
-      <div className="worker-card-photo">
+    <Card className="worker-preview-card">
+      <div className="worker-preview-photo">
         {worker.photoUrl ? (
           <img
             src={worker.photoUrl}
@@ -27,8 +27,8 @@ function WorkerCard({ worker }: WorkerCardProps) {
         )}
       </div>
 
-      <div className="worker-card-content">
-        <div className="worker-card-badges">
+      <div className="worker-preview-content">
+        <div className="worker-preview-badges">
           {worker.premium && (
             <Badge variant="premium">
               PREMIUM
@@ -48,12 +48,45 @@ function WorkerCard({ worker }: WorkerCardProps) {
           {worker.description}
         </p>
 
-        <Link
-          to={`/trabajador/${worker.id}`}
-          className="button button-outline"
-        >
-          Ver perfil
-        </Link>
+        <div className="worker-card-actions">
+          <Link
+            to={`/trabajador/${worker.id}`}
+            className="button button-outline"
+          >
+            Ver perfil
+          </Link>
+
+          {worker.phone.trim() && (
+            <a
+              href={`tel:${worker.phone}`}
+              className="button button-primary"
+            >
+              Llamar
+            </a>
+          )}
+
+          {worker.whatsapp.trim() ? (
+            <a
+              href={`https://wa.me/${worker.whatsapp.replace(
+                /\D/g,
+                '',
+              )}`}
+              className="button button-secondary"
+              target="_blank"
+              rel="noreferrer"
+            >
+              WhatsApp
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="button button-secondary"
+              disabled
+            >
+              WhatsApp no disponible
+            </button>
+          )}
+        </div>
       </div>
     </Card>
   )

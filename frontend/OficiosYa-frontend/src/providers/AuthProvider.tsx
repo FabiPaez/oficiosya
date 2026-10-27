@@ -140,27 +140,24 @@ export function AuthProvider({
     void authService.logout()
   }
 
-  function registerAsProvider() {
-    if (!user) return
 
+  async function registerAsProvider() {
+    const updatedUser = await authService.getCurrentUser()
 
-    const currentRoles = user.roles ?? [user.role]
+    if (!updatedUser) {
+      throw new Error(
+        'No se pudo recuperar la sesión después del registro profesional.',
+      )
+    }
 
-    const updatedUser: User = {
-      ...user,
-      roles: [
-        ...new Set<UserRole>([
-          ...currentRoles,
-          'PROVIDER',
-        ]),
-      ],
+    if (!updatedUser.roles?.includes('PROVIDER')) {
+      throw new Error(
+        'El servidor todavía no confirma el rol de prestador.',
+      )
     }
 
     saveUser(updatedUser)
-
-
   }
-
 
   const value: AuthContextValue = {
     user,

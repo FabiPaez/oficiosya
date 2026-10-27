@@ -11,7 +11,6 @@ function CategoriesPage() {
   useEffect(() => {
     let active = true
 
-
     async function loadCategories() {
       try {
         const result = await categoryService.getAll()
@@ -39,41 +38,67 @@ function CategoriesPage() {
     return () => {
       active = false
     }
-
-
   }, [])
 
-  return (<main> <h1>Categorías de oficios</h1>
+  return (
+    <main className="categories-page">
+      <div className="container">
+        <header className="categories-header">
+          <span className="section-eyebrow">Encontrá profesionales</span>
+          <h1>Categorías de oficios</h1>
+          <p>
+            Explorá los distintos oficios y encontrá trabajadores
+            disponibles para tus necesidades.
+          </p>
+        </header>
 
-    {loading && <p>Cargando categorías...</p>}
+        {loading && (
+          <p className="categories-message">
+            Cargando categorías...
+          </p>
+        )}
 
-    {error && (
-      <p role="alert">
-        No pudimos cargar las categorías: {error}
-      </p>
-    )}
+        {error && (
+          <p className="categories-message categories-error" role="alert">
+            No pudimos cargar las categorías: {error}
+          </p>
+        )}
 
-    {!loading && !error && categories.length === 0 && (
-      <p>Por el momento no hay categorías disponibles.</p>
-    )}
+        {!loading && !error && categories.length === 0 && (
+          <p className="categories-message">
+            Por el momento no hay categorías disponibles.
+          </p>
+        )}
 
-    {!loading && !error && categories.length > 0 && (
-      <ul>
-        {categories.map((category) => (
-          <li key={category.id}>
-            <Link to={`/categorias/${category.id}`}>
-              <strong>{category.name}</strong>
-              {category.description && (
-                <p>{category.description}</p>
-              )}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    )}
-  </main>
+        {!loading && !error && categories.length > 0 && (
+          <div className="categories-grid">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                to={`/categorias/${category.id}`}
+                className="category-card"
+              >
+                <div className="category-card-icon" aria-hidden="true">
+                  {category.name.charAt(0).toUpperCase()}
+                </div>
 
+                <h2>{category.name}</h2>
 
+                <p>
+                  {category.description ||
+                    'Consultá los trabajadores disponibles en esta categoría.'}
+                </p>
+
+                <span className="category-card-link">
+                  Ver trabajadores
+                  <span aria-hidden="true"> →</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
   )
 }
 

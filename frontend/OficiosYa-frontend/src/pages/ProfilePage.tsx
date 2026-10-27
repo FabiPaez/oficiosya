@@ -144,7 +144,9 @@ function ProfilePage() {
                   <div>
                     <dt>Categorías</dt>
                     <dd>
-                      {(worker.categoryNames ?? worker.categories).join(', ') || 'Sin categorías'}
+                      {worker.categoryNames?.join(', ') ||
+                        worker.categories.join(', ') ||
+                        'Sin categorías'}
                     </dd>
                   </div>
 
@@ -176,11 +178,11 @@ function ProfilePage() {
                   <div>
                     <dt>Experiencia</dt>
                     <dd>
-                      {worker.experienceYears === '+40'
-                        ? '+40 años'
-                        : worker.experienceYears !== null
-                          ? `${worker.experienceYears} años`
-                          : 'Sin informar'}
+                      {worker.experienceYears == null
+                        ? 'Sin informar'
+                        : worker.experienceYears === '+40'
+                          ? '+40 años'
+                          : `${worker.experienceYears} años`}
                     </dd>
                   </div>
 
