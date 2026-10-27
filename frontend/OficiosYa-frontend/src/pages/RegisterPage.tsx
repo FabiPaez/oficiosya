@@ -192,11 +192,11 @@ function RegisterPage() {
                 </div>
                 <div>
                   <h2 className="register-feature-title">
-                    Perfiles reales y opiniones verificadas
+                    Perfiles reales y detallados
                   </h2>
                   <p className="register-feature-desc">
-                    Conocé la reputación, fotos de trabajos anteriores y
-                    calificaciones de vecinos de tu zona.
+                    Conocé la trayectoria, especialidades y fotos de trabajos anteriores
+                    de trabajadores de tu zona.
                   </p>
                 </div>
               </div>

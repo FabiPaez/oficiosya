@@ -157,10 +157,10 @@ function LoginPage() {
                 </div>
                 <div>
                   <h2 className="login-feature-title">
-                    Reseñas y reputación real
+                    Información transparente
                   </h2>
                   <p className="login-feature-desc">
-                    Revisá calificaciones verificadas y experiencias de otros vecinos.
+                    Revisá la experiencia, especialidad y zonas de cobertura de cada profesional.
                   </p>
                 </div>
               </div>
@@ -185,7 +185,7 @@ function LoginPage() {
                     Panel de prestador
                   </h2>
                   <p className="login-feature-desc">
-                    Si ofrecés un oficio, gestioná tus tarifas, servicios y calificaciones recibidas.
+                    Si ofrecés un oficio, gestioná tus servicios, datos de contacto y disponibilidad.
                   </p>
                 </div>
               </div>

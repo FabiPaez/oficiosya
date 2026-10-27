@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Badge from '../components/ui/Badge'
-import ReviewList from '../components/workers/ReviewList'
-import WorkerRating from '../components/workers/WorkerRating'
 import { useAuth } from '../hooks/useAuth'
 import { favoriteService } from '../services/favoriteService'
 import { reportService } from '../services/reportService'
-import { reviewService } from '../services/reviewService'
 import { workerService } from '../services/workerService'
-import type { Review } from '../types/review'
 import type { Worker } from '../types/worker'
 
 function WorkerPage() {
@@ -16,9 +12,6 @@ function WorkerPage() {
   const { user, isAuthenticated } = useAuth()
 
   const [worker, setWorker] = useState<Worker | null>(null)
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [reviewsLoading, setReviewsLoading] = useState(true)
-  const [reviewsError, setReviewsError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -26,60 +19,28 @@ function WorkerPage() {
   const [favoriteLoading, setFavoriteLoading] = useState(false)
   const [reporting, setReporting] = useState(false)
 
-
   useEffect(() => {
     let cancelled = false
 
     async function loadWorker() {
       if (!id) {
         setWorker(null)
-        setReviews([])
         setLoading(false)
-        setReviewsLoading(false)
         return
       }
 
       setLoading(true)
       setError(false)
-      setReviewsLoading(true)
-      setReviewsError(false)
 
       try {
         const result = await workerService.getById(id)
 
         if (cancelled) return
-
         setWorker(result)
-
-        if (!result) {
-          setReviews([])
-          setReviewsLoading(false)
-          return
-        }
-
-        try {
-          const workerReviews =
-            await reviewService.getByWorkerId(result.id)
-
-          if (!cancelled) {
-            setReviews(workerReviews)
-          }
-        } catch {
-          if (!cancelled) {
-            setReviewsError(true)
-            setReviews([])
-          }
-        } finally {
-          if (!cancelled) {
-            setReviewsLoading(false)
-          }
-        }
       } catch {
         if (!cancelled) {
           setError(true)
           setWorker(null)
-          setReviews([])
-          setReviewsLoading(false)
         }
       } finally {
         if (!cancelled) {
@@ -168,19 +129,19 @@ function WorkerPage() {
 
   if (loading) {
     return (
-      <main className="page-section">
+      <div className="page-section">
         <div className="container">
           <div className="state state-loading">
             Cargando perfil...
           </div>
         </div>
-      </main>
+      </div>
     )
   }
 
   if (error) {
     return (
-      <main className="page-section">
+      <div className="page-section">
         <div className="container">
           <div className="state state-error">
             No pudimos cargar el perfil del trabajador.
@@ -193,13 +154,13 @@ function WorkerPage() {
             Volver a buscar
           </Link>
         </div>
-      </main>
+      </div>
     )
   }
 
   if (!worker) {
     return (
-      <main className="page-section">
+      <div className="page-section">
         <div className="container">
           <div className="state state-empty">
             No encontramos el trabajador que buscás.
@@ -212,12 +173,14 @@ function WorkerPage() {
             Volver a buscar
           </Link>
         </div>
-      </main>
+      </div>
     )
   }
 
+  const categoriesList = worker.categoryNames ?? worker.categories
+
   return (
-    <main className="page-section">
+    <div className="page-section">
       <div className="container">
         <Link
           to="/buscar"
@@ -228,10 +191,18 @@ function WorkerPage() {
 
         <section className="worker-profile-header">
           <div className="worker-profile-photo">
-            <span>
-              {worker.firstName.charAt(0)}
-              {worker.lastName.charAt(0)}
-            </span>
+            {worker.photoUrl ? (
+              <img
+                src={worker.photoUrl}
+                alt={`${worker.firstName} ${worker.lastName}`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+              />
+            ) : (
+              <span>
+                {worker.firstName.charAt(0)}
+                {worker.lastName.charAt(0)}
+              </span>
+            )}
           </div>
 
           <div className="worker-profile-main">
@@ -241,13 +212,6 @@ function WorkerPage() {
                   PREMIUM
                 </Badge>
               )}
-
-              {worker.ratingAverage >= 4.8 &&
-                worker.reviewCount >= 3 && (
-                  <Badge variant="excellent">
-                    EXCELENTE
-                  </Badge>
-                )}
             </div>
 
             <h1>
@@ -255,13 +219,8 @@ function WorkerPage() {
             </h1>
 
             <p className="worker-profile-category">
-              {worker.categories.join(' · ')}
+              {categoriesList.join(' · ')}
             </p>
-
-            <WorkerRating
-              rating={worker.ratingAverage}
-              reviewCount={worker.reviewCount}
-            />
 
             <p className="worker-profile-description">
               {worker.description}
@@ -275,7 +234,6 @@ function WorkerPage() {
             >
               Llamar
             </a>
-
 
             {worker.whatsapp.trim() ? (
               <a
@@ -336,7 +294,7 @@ function WorkerPage() {
             <div>
               <strong>Cobertura</strong>
 
-              <span>{worker.coverage}</span>
+              <span>{worker.coverage || 'Sin informar'}</span>
 
               {worker.zones.length > 0 && (
                 <small>
@@ -347,22 +305,23 @@ function WorkerPage() {
 
             <div>
               <strong>Departamento</strong>
-              <span>{worker.department}</span>
+              <span>{worker.department || 'Sin informar'}</span>
             </div>
 
             <div>
               <strong>Experiencia</strong>
               <span>
-                {worker.experienceYears}{' '}
-                {worker.experienceYears === 1
-                  ? 'año'
-                  : 'años'}
+                {worker.experienceYears === '+40'
+                  ? '+40 años'
+                  : worker.experienceYears !== null
+                    ? `${worker.experienceYears} ${worker.experienceYears === 1 ? 'año' : 'años'}`
+                    : 'Sin informar'}
               </span>
             </div>
 
             <div>
               <strong>Horarios</strong>
-              <span>{worker.schedule}</span>
+              <span>{worker.schedule || 'Sin informar'}</span>
             </div>
           </div>
         </section>
@@ -371,9 +330,13 @@ function WorkerPage() {
           <h2>Días de atención</h2>
 
           <div className="worker-profile-days">
-            {worker.availableDays.map((day) => (
-              <span key={day}>{day}</span>
-            ))}
+            {worker.availableDays.length > 0 ? (
+              worker.availableDays.map((day) => (
+                <span key={day}>{day}</span>
+              ))
+            ) : (
+              <span>A coordinar</span>
+            )}
           </div>
         </section>
 
@@ -402,24 +365,8 @@ function WorkerPage() {
             </div>
           )}
         </section>
-
-        <section className="worker-profile-section">
-          <h2>Reseñas</h2>
-
-          {reviewsLoading ? (
-            <div className="state state-loading">
-              Cargando reseñas...
-            </div>
-          ) : reviewsError ? (
-            <div className="state state-error">
-              No pudimos cargar las reseñas de este profesional.
-            </div>
-          ) : (
-            <ReviewList reviews={reviews} />
-          )}
-        </section>
       </div>
-    </main>
+    </div>
   )
 }
 

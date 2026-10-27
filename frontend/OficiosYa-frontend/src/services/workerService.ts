@@ -1,4 +1,3 @@
-
 import { apiFetch } from './api'
 import { mockWorkers } from '../data/mockWorkers'
 import type { Worker, CoverageType } from '../types/worker'
@@ -7,7 +6,7 @@ import { normalizeText } from '../utils/normalizeText'
 
 export type CreateMockWorkerData = Omit<
   Worker,
-  'id' | 'ratingAverage' | 'reviewCount' | 'premium' | 'active'
+  'id' | 'premium' | 'active'
 >
 
 export type UpdateMockWorkerData = Pick<
@@ -84,8 +83,6 @@ function mapProviderToWorker(item: ApiProviderItem): Worker {
     categoryNames: item.categories.map((category) => category.name),
     photoUrl: provider.profile_image_url ?? '',
     workPhotoUrls: [],
-    ratingAverage: 0,
-    reviewCount: 0,
     premium: false,
     experienceYears: null,
     schedule: '',
@@ -174,8 +171,6 @@ export const workerService = {
     const worker: Worker = {
       ...data,
       id: `worker-${Date.now()}`,
-      ratingAverage: 0,
-      reviewCount: 0,
       premium: false,
       active: true,
     }

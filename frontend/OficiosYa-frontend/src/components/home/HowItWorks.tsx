@@ -10,7 +10,7 @@ function HowItWorks() {
       number: '2',
       title: 'Compará',
       description:
-        'Revisá perfiles, experiencia, valoración y opiniones de otros clientes.',
+        'Revisá perfiles, experiencia, zonas de cobertura y trabajos realizados.',
     },
     {
       number: '3',

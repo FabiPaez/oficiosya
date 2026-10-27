@@ -2,20 +2,29 @@ import { Link } from 'react-router-dom'
 import type { Worker } from '../../types/worker'
 import Badge from '../ui/Badge'
 import Card from '../ui/Card'
-import WorkerRating from './WorkerRating'
 
 interface WorkerCardProps {
   worker: Worker
 }
 
 function WorkerCard({ worker }: WorkerCardProps) {
+  const categoriesList = worker.categoryNames ?? worker.categories
+
   return (
     <Card className="worker-card">
       <div className="worker-card-photo">
-        <span>
-          {worker.firstName.charAt(0)}
-          {worker.lastName.charAt(0)}
-        </span>
+        {worker.photoUrl ? (
+          <img
+            src={worker.photoUrl}
+            alt={`${worker.firstName} ${worker.lastName}`}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+          />
+        ) : (
+          <span>
+            {worker.firstName.charAt(0)}
+            {worker.lastName.charAt(0)}
+          </span>
+        )}
       </div>
 
       <div className="worker-card-content">
@@ -25,13 +34,6 @@ function WorkerCard({ worker }: WorkerCardProps) {
               PREMIUM
             </Badge>
           )}
-
-          {worker.ratingAverage >= 4.8 &&
-            worker.reviewCount >= 3 && (
-              <Badge variant="excellent">
-                EXCELENTE
-              </Badge>
-            )}
         </div>
 
         <h3>
@@ -39,13 +41,8 @@ function WorkerCard({ worker }: WorkerCardProps) {
         </h3>
 
         <p className="worker-card-category">
-          {worker.categories.join(' · ')}
+          {categoriesList.join(' · ')}
         </p>
-
-        <WorkerRating
-          rating={worker.ratingAverage}
-          reviewCount={worker.reviewCount}
-        />
 
         <p className="worker-card-description">
           {worker.description}

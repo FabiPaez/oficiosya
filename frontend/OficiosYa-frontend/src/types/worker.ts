@@ -19,8 +19,8 @@ export interface Worker {
   categoryNames?: string[]
   photoUrl: string
   workPhotoUrls: string[]
-  ratingAverage: number
-  reviewCount: number
+  ratingAverage?: number
+  reviewCount?: number
   premium: boolean
   experienceYears: number | '+40' | null
   schedule: string

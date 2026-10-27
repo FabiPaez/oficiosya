@@ -5,7 +5,6 @@ import type { Worker } from '../../types/worker'
 import { rankWorkers } from '../../utils/workerRanking'
 import Badge from '../ui/Badge'
 import Card from '../ui/Card'
-import WorkerRating from '../workers/WorkerRating'
 
 function FeaturedWorkers() {
   const [workers, setWorkers] = useState<Worker[]>([])
@@ -90,10 +89,18 @@ function FeaturedWorkers() {
               className="worker-preview-card"
             >
               <div className="worker-preview-photo">
-                <span>
-                  {worker.firstName.charAt(0)}
-                  {worker.lastName.charAt(0)}
-                </span>
+                {worker.photoUrl ? (
+                  <img
+                    src={worker.photoUrl}
+                    alt={`${worker.firstName} ${worker.lastName}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
+                  />
+                ) : (
+                  <span>
+                    {worker.firstName.charAt(0)}
+                    {worker.lastName.charAt(0)}
+                  </span>
+                )}
               </div>
 
               <div className="worker-preview-content">
@@ -103,13 +110,6 @@ function FeaturedWorkers() {
                       PREMIUM
                     </Badge>
                   )}
-
-                  {worker.ratingAverage >= 4.8 &&
-                    worker.reviewCount >= 3 && (
-                      <Badge variant="excellent">
-                        EXCELENTE
-                      </Badge>
-                    )}
                 </div>
 
                 <h3>
@@ -121,11 +121,6 @@ function FeaturedWorkers() {
                     .map((categoryId) => categoryId)
                     .join(' · ')}
                 </p>
-
-                <WorkerRating
-                  rating={worker.ratingAverage}
-                  reviewCount={worker.reviewCount}
-                />
 
                 <Link
                   to={`/trabajador/${worker.id}`}

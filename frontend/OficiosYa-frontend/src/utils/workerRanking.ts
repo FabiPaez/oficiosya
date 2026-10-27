@@ -1,28 +1,10 @@
 import type { Worker } from '../types/worker'
 import { normalizeText } from './normalizeText'
 
-const MIN_REVIEWS_FOR_RATING = 3
-
 interface RankingContext {
   query?: string
   categoryId?: string
   zone?: string
-}
-
-function getRatingScore(worker: Worker): number {
-  if (worker.reviewCount < MIN_REVIEWS_FOR_RATING) {
-    return 0
-  }
-
-  return worker.ratingAverage / 5
-}
-
-function getReviewCountScore(worker: Worker): number {
-  if (worker.reviewCount === 0) {
-    return 0
-  }
-
-  return Math.min(worker.reviewCount / 20, 1)
 }
 
 function getPremiumScore(worker: Worker): number {
@@ -110,15 +92,11 @@ export function getWorkerRankingScore(
     context,
   )
 
-  const ratingScore = getRatingScore(worker)
-  const reviewCountScore = getReviewCountScore(worker)
   const premiumScore = getPremiumScore(worker)
 
   return (
-    relevanceScore * 0.4 +
-    ratingScore * 0.3 +
-    reviewCountScore * 0.2 +
-    premiumScore * 0.1
+    relevanceScore * 0.7 +
+    premiumScore * 0.3
   )
 }
 
