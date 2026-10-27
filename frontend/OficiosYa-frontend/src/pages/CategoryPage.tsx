@@ -6,7 +6,6 @@ import type { Category } from '../types/category'
 import type { Worker } from '../types/worker'
 import Badge from '../components/ui/Badge'
 import Card from '../components/ui/Card'
-import WorkerRating from '../components/workers/WorkerRating'
 
 function CategoryPage() {
   const { id } = useParams<{ id: string }>()
@@ -76,18 +75,18 @@ function CategoryPage() {
   }, [id])
 
   return (
-    <main>
-      <p>
-        <Link to="/categorias">← Volver a categorías</Link>
-      </p>
+    <div className="page-section">
+      <div className="container">
+        <p>
+          <Link to="/categorias" className="button button-outline">← Volver a categorías</Link>
+        </p>
 
-      {loading && <p>Cargando categoría y prestadores...</p>}
+        {loading && <div className="state state-loading">Cargando categoría y prestadores...</div>}
 
-      {error && <p role="alert">{error}</p>}
+        {error && <div className="state state-error" role="alert">{error}</div>}
 
-      {!loading && !error && category && (
-        <section className="home-section">
-          <div className="container">
+        {!loading && !error && category && (
+          <section className="home-section" style={{ padding: '0' }}>
             <div className="section-heading">
               <div>
                 <span className="section-eyebrow">Profesionales</span>
@@ -99,10 +98,9 @@ function CategoryPage() {
             <h2>Trabajadores de esta categoría</h2>
 
             {workers.length === 0 ? (
-              <p>
-                Por el momento no hay trabajadores registrados en esta
-                categoría.
-              </p>
+              <div className="state state-empty">
+                Por el momento no hay trabajadores registrados en esta categoría.
+              </div>
             ) : (
               <div className="worker-preview-grid">
                 {workers.map((worker) => (
@@ -115,6 +113,7 @@ function CategoryPage() {
                         <img
                           src={worker.photoUrl}
                           alt={`${worker.firstName} ${worker.lastName}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }}
                         />
                       ) : (
                         <span>
@@ -129,13 +128,6 @@ function CategoryPage() {
                         {worker.premium && (
                           <Badge variant="premium">PREMIUM</Badge>
                         )}
-
-                        {worker.ratingAverage >= 4.8 &&
-                          worker.reviewCount >= 3 && (
-                            <Badge variant="excellent">
-                              EXCELENTE
-                            </Badge>
-                          )}
                       </div>
 
                       <h3>
@@ -155,11 +147,6 @@ function CategoryPage() {
                       {worker.coverage && (
                         <p>Zonas: {worker.coverage}</p>
                       )}
-
-                      <WorkerRating
-                        rating={worker.ratingAverage}
-                        reviewCount={worker.reviewCount}
-                      />
 
                       <div className="worker-card-actions">
                         <Link
@@ -205,10 +192,10 @@ function CategoryPage() {
                 ))}
               </div>
             )}
-          </div>
-        </section>
-      )}
-    </main>
+          </section>
+        )}
+      </div>
+    </div>
   )
 }
 
