@@ -1,15 +1,50 @@
-import { mockFavorites } from '../data/mockFavorites'
-import { mockWorkers } from '../data/mockWorkers'
+import { apiFetch } from './api'
 import type { Favorite } from '../types/favorite'
+
+interface ApiResponse<T> {
+  success: boolean
+  data: T
+  message?: string
+}
+
+interface FavoriteRecord {
+  user_id?: string
+  provider_id: string
+  created_at: string
+  profiles?: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    phone: string | null
+    profile_image_url: string | null
+    description: string | null
+    city: string | null
+    department: string | null
+  } | null
+}
+
+function mapFavorite(
+  record: FavoriteRecord,
+  clientId: string,
+): Favorite {
+  return {
+    id: `${clientId}:${record.provider_id}`,
+    clientId,
+    workerId: record.provider_id,
+    createdAt: record.created_at,
+  }
+}
 
 export const favoriteService = {
   async getByClientId(
     clientId: string,
   ): Promise<Favorite[]> {
-    return Promise.resolve(
-      mockFavorites.filter(
-        (favorite) => favorite.clientId === clientId,
-      ),
+    const response = await apiFetch<ApiResponse<FavoriteRecord[]>>(
+      '/favorites',
+    )
+
+    return response.data.map((record) =>
+      mapFavorite(record, clientId),
     )
   },
 
@@ -17,73 +52,49 @@ export const favoriteService = {
     clientId: string,
     workerId: string,
   ): Promise<boolean> {
-    const worker = mockWorkers.find(
-      (item) => item.id === workerId,
-    )
-
-    if (worker?.userId === clientId) {
+    if (clientId === workerId) {
       return false
     }
 
-    const favorite = mockFavorites.some(
-      (item) =>
-        item.clientId === clientId &&
-        item.workerId === workerId,
-    )
+    const favorites = await this.getByClientId(clientId)
 
-    return Promise.resolve(favorite)
+    return favorites.some(
+      (favorite) => favorite.workerId === workerId,
+    )
   },
 
   async add(
     clientId: string,
     workerId: string,
   ): Promise<Favorite> {
-    const worker = mockWorkers.find(
-      (item) => item.id === workerId,
-    )
-
-    if (worker?.userId === clientId) {
+    if (clientId === workerId) {
       throw new Error(
         'No podés agregar tu propio perfil a favoritos.',
       )
     }
 
-    const existingFavorite = mockFavorites.find(
-      (item) =>
-        item.clientId === clientId &&
-        item.workerId === workerId,
+    const response = await apiFetch<ApiResponse<FavoriteRecord>>(
+      '/favorites',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          providerId: workerId,
+        }),
+      },
     )
 
-    if (existingFavorite) {
-      return Promise.resolve(existingFavorite)
-    }
-
-    const favorite: Favorite = {
-      id: `favorite-${Date.now()}`,
-      clientId,
-      workerId,
-      createdAt: new Date().toISOString(),
-    }
-
-    mockFavorites.push(favorite)
-
-    return Promise.resolve(favorite)
+    return mapFavorite(response.data, clientId)
   },
 
   async remove(
     clientId: string,
     workerId: string,
   ): Promise<void> {
-    const favoriteIndex = mockFavorites.findIndex(
-      (item) =>
-        item.clientId === clientId &&
-        item.workerId === workerId,
+    await apiFetch<ApiResponse<{ providerId: string }>>(
+      `/favorites/${encodeURIComponent(workerId)}`,
+      {
+        method: 'DELETE',
+      },
     )
-
-    if (favoriteIndex !== -1) {
-      mockFavorites.splice(favoriteIndex, 1)
-    }
-
-    return Promise.resolve()
   },
 }
