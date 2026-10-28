@@ -87,7 +87,7 @@ export const favoriteService = {
   },
 
   async remove(
-    clientId: string,
+    _clientId: string,
     workerId: string,
   ): Promise<void> {
     await apiFetch<ApiResponse<{ providerId: string }>>(
@@ -97,4 +97,5 @@ export const favoriteService = {
       },
     )
   },
+
 }
