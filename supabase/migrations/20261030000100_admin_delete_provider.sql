@@ -1,10 +1,11 @@
 -- =========================================================
 -- OficiosYa
--- Función RPC administrativa para eliminar prestadores
+-- Función RPC administrativa y políticas RLS para eliminar prestadores
 -- =========================================================
 
 BEGIN;
 
+-- 1. Función RPC con privilegios de seguridad (SECURITY DEFINER)
 CREATE OR REPLACE FUNCTION public.admin_delete_provider(
     p_provider_id uuid,
     p_delete_account boolean DEFAULT false
@@ -12,7 +13,7 @@ CREATE OR REPLACE FUNCTION public.admin_delete_provider(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path = public, pg_catalog, auth
 AS $function$
 DECLARE
     v_admin_id uuid;
@@ -76,7 +77,7 @@ BEGIN
         experience_years = NULL,
         schedule = NULL,
         available_days = NULL,
-        updated_at = pg_catalog.now()
+        updated_at = NOW()
     WHERE id = p_provider_id;
 
     -- 6. Si se solicita borrado completo de la cuenta del usuario
@@ -97,7 +98,7 @@ BEGIN
         DELETE FROM public.profiles
         WHERE id = p_provider_id;
 
-        -- Eliminar de la tabla auth.users
+        -- Eliminar de auth.users si existe
         DELETE FROM auth.users
         WHERE id = p_provider_id;
 
@@ -120,8 +121,69 @@ $function$;
 
 ALTER FUNCTION public.admin_delete_provider(uuid, boolean) OWNER TO postgres;
 
--- Permisos de ejecución: solo authenticated (la función valida internamente que sea ADMIN)
+-- Permisos de ejecución de la RPC:
 REVOKE ALL ON FUNCTION public.admin_delete_provider(uuid, boolean) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_delete_provider(uuid, boolean) TO authenticated;
+
+-- 2. Conceder permisos de DELETE/UPDATE para operaciones directas de ADMIN
+GRANT DELETE ON public.user_roles TO authenticated;
+GRANT DELETE ON public.provider_categories TO authenticated;
+GRANT DELETE ON public.provider_services TO authenticated;
+GRANT DELETE ON public.favorites TO authenticated;
+GRANT DELETE ON public.profiles TO authenticated;
+
+-- 3. Políticas RLS de respaldo para que ADMIN pueda borrar/actualizar
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'user_roles' AND policyname = 'user_roles_delete_admin'
+    ) THEN
+        CREATE POLICY user_roles_delete_admin
+        ON public.user_roles
+        FOR DELETE TO authenticated
+        USING ((SELECT public.current_user_has_role('ADMIN')));
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'provider_categories' AND policyname = 'provider_categories_delete_admin'
+    ) THEN
+        CREATE POLICY provider_categories_delete_admin
+        ON public.provider_categories
+        FOR DELETE TO authenticated
+        USING ((SELECT public.current_user_has_role('ADMIN')));
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'provider_services' AND policyname = 'provider_services_delete_admin'
+    ) THEN
+        CREATE POLICY provider_services_delete_admin
+        ON public.provider_services
+        FOR DELETE TO authenticated
+        USING ((SELECT public.current_user_has_role('ADMIN')));
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'profiles' AND policyname = 'profiles_update_admin'
+    ) THEN
+        CREATE POLICY profiles_update_admin
+        ON public.profiles
+        FOR UPDATE TO authenticated
+        USING ((SELECT public.current_user_has_role('ADMIN')));
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'profiles' AND policyname = 'profiles_delete_admin'
+    ) THEN
+        CREATE POLICY profiles_delete_admin
+        ON public.profiles
+        FOR DELETE TO authenticated
+        USING ((SELECT public.current_user_has_role('ADMIN')));
+    END IF;
+END $$;
 
 COMMIT;

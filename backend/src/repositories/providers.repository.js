@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase, supabaseAdmin } from '../config/supabase.js';
 
 
 export async function findProviderById(
@@ -291,8 +291,10 @@ export async function deleteProvider(
   supabaseClient = supabase,
   { deleteAccount = false } = {},
 ) {
-  // Intentar ejecutar el RPC admin_delete_provider
-  const { data, error } = await supabaseClient.rpc(
+  const clientToUse = supabaseAdmin || supabaseClient;
+
+  // 1. Intentar ejecutar la RPC admin_delete_provider
+  const { data, error } = await clientToUse.rpc(
     'admin_delete_provider',
     {
       p_provider_id: providerId,
@@ -304,42 +306,47 @@ export async function deleteProvider(
     return data;
   }
 
-  // Fallback si la función RPC aún no fue creada en la base de datos
-  // 1. Quitar servicios asociados
-  await supabaseClient
+  console.warn(
+    'admin_delete_provider RPC retornó error. Ejecutando operaciones directas:',
+    error.message,
+  );
+
+  // 2. Fallback de operaciones directas
+  await clientToUse
     .from('provider_services')
     .delete()
     .eq('provider_id', providerId);
 
-  // 2. Quitar categorías asociadas
-  await supabaseClient
+  await clientToUse
     .from('provider_categories')
     .delete()
     .eq('provider_id', providerId);
 
-  // 3. Quitar de favoritos
-  await supabaseClient
+  await clientToUse
     .from('favorites')
     .delete()
     .eq('provider_id', providerId);
 
-  // 4. Quitar rol PROVIDER de user_roles
-  const { data: providerRole } = await supabaseClient
+  const { data: providerRole } = await clientToUse
     .from('roles')
     .select('id')
     .eq('name', 'PROVIDER')
     .maybeSingle();
 
   if (providerRole?.id) {
-    await supabaseClient
+    const { error: errRole } = await clientToUse
       .from('user_roles')
       .delete()
       .eq('user_id', providerId)
       .eq('role_id', providerRole.id);
+
+    if (errRole) {
+      console.error('Error al remover rol de prestador:', errRole);
+      throw new Error(`No se pudo remover el rol de prestador: ${errRole.message}`);
+    }
   }
 
-  // 5. Limpiar datos de prestador en el perfil
-  await supabaseClient
+  const { error: errProfile } = await clientToUse
     .from('profiles')
     .update({
       description: null,
@@ -351,26 +358,35 @@ export async function deleteProvider(
     })
     .eq('id', providerId);
 
+  if (errProfile) {
+    console.error('Error al actualizar el perfil:', errProfile);
+    throw new Error(`No se pudo actualizar el perfil: ${errProfile.message}`);
+  }
+
   if (deleteAccount) {
-    await supabaseClient
+    await clientToUse
       .from('service_requests')
       .delete()
       .or(`provider_id.eq.${providerId},client_id.eq.${providerId}`);
 
-    await supabaseClient
+    await clientToUse
       .from('favorites')
       .delete()
       .eq('user_id', providerId);
 
-    await supabaseClient
+    await clientToUse
       .from('user_roles')
       .delete()
       .eq('user_id', providerId);
 
-    await supabaseClient
+    await clientToUse
       .from('profiles')
       .delete()
       .eq('id', providerId);
+
+    if (clientToUse.auth?.admin?.deleteUser) {
+      await clientToUse.auth.admin.deleteUser(providerId);
+    }
   }
 
   return {

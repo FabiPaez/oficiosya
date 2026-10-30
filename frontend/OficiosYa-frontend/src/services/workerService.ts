@@ -343,14 +343,22 @@ export const workerService = {
         },
       )
     } catch (error) {
-      // Si la API falla o estamos en modo mock/offline, eliminamos de mockWorkers
-      const index = mockWorkers.findIndex(
-        (item) => item.id === id || item.userId === id,
-      )
-      if (index !== -1) {
-        mockWorkers.splice(index, 1)
-        return
+      const isNetworkError =
+        error instanceof TypeError &&
+        (error.message.includes('fetch') || error.message.includes('network'))
+
+      if (isNetworkError) {
+        // En entorno de tests o completamente offline sin backend
+        const index = mockWorkers.findIndex(
+          (item) => item.id === id || item.userId === id,
+        )
+        if (index !== -1) {
+          mockWorkers.splice(index, 1)
+          return
+        }
       }
+
+      // Si el backend respondió con un error (401, 403, 404, 500, etc.), propagamos el error real
       throw error
     }
 
