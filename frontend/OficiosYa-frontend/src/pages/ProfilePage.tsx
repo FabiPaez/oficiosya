@@ -244,6 +244,22 @@ function ProfilePage() {
               </Link>
             )}
 
+            {isAdmin && (
+              <Link
+                className="profile-action"
+                to="/admin"
+                style={{
+                  borderLeft: '4px solid var(--color-primary)',
+                }}
+              >
+                <h2>Panel de administración</h2>
+                <p>
+                  Gestioná a todos los prestadores de la plataforma,
+                  inspeccioná perfiles y eliminá o suspendé cuentas.
+                </p>
+              </Link>
+            )}
+
             {isClient && !isProvider && !isAdmin && (
               <Link
                 className="profile-action"

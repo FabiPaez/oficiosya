@@ -329,4 +329,37 @@ export const workerService = {
 
     return worker
   },
+
+  async deleteProvider(
+    id: string,
+    deleteAccount = false,
+  ): Promise<void> {
+    try {
+      const queryParam = deleteAccount ? '?delete_account=true' : ''
+      await apiFetch<{ success: boolean; message: string }>(
+        `/providers/${encodeURIComponent(id)}${queryParam}`,
+        {
+          method: 'DELETE',
+        },
+      )
+    } catch (error) {
+      // Si la API falla o estamos en modo mock/offline, eliminamos de mockWorkers
+      const index = mockWorkers.findIndex(
+        (item) => item.id === id || item.userId === id,
+      )
+      if (index !== -1) {
+        mockWorkers.splice(index, 1)
+        return
+      }
+      throw error
+    }
+
+    // Mantener sincronizado mockWorkers local
+    const index = mockWorkers.findIndex(
+      (item) => item.id === id || item.userId === id,
+    )
+    if (index !== -1) {
+      mockWorkers.splice(index, 1)
+    }
+  },
 }

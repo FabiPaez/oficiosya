@@ -44,6 +44,11 @@ function AppRouter() {
         />
 
         <Route
+          path="/admin/login"
+          element={<LoginPage />}
+        />
+
+        <Route
           path="/registro"
           element={<RegisterPage />}
         />

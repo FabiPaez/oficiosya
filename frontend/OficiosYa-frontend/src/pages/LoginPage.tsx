@@ -3,13 +3,20 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { authService } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { loginMock } = useAuth()
+
+  const isAdminMode =
+    location.pathname.startsWith('/admin') ||
+    searchParams.get('admin') === 'true' ||
+    searchParams.get('redirect')?.startsWith('/admin')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -68,7 +75,25 @@ function LoginPage() {
       )
 
       loginMock(user)
-      navigate('/')
+
+      const userIsAdmin =
+        user.role === 'ADMIN' || user.roles?.includes('ADMIN')
+
+      if (isAdminMode && !userIsAdmin) {
+        setError(
+          'Esta cuenta no cuenta con permisos de Administrador para acceder al panel.',
+        )
+        return
+      }
+
+      const redirect = searchParams.get('redirect')
+      if (redirect && redirect.startsWith('/')) {
+        navigate(redirect)
+      } else if (userIsAdmin) {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } catch (error: unknown) {
       setError(
         error instanceof Error
@@ -101,16 +126,23 @@ function LoginPage() {
                 >
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                <span>Plataforma Segura · Comunidad Jáchal</span>
+                <span>
+                  {isAdminMode
+                    ? 'Panel de Control · Acceso Restringido'
+                    : 'Plataforma Segura · Comunidad Jáchal'}
+                </span>
               </div>
 
               <h1 className="login-hero-title">
-                Bienvenido de nuevo a OficiosYa
+                {isAdminMode
+                  ? 'Ingreso al Panel de Control'
+                  : 'Bienvenido de nuevo a OficiosYa'}
               </h1>
 
               <p className="login-hero-description">
-                Conectate con los mejores trabajadores locales, gestioná tus
-                solicitudes de trabajo o administrá tus servicios profesionales en un solo lugar.
+                {isAdminMode
+                  ? 'Acceso restringido para el equipo de administración de OficiosYa. Iniciá sesión con tus credenciales de Super Admin para supervisar y gestionar prestadores.'
+                  : 'Conectate con los mejores trabajadores locales, gestioná tus solicitudes de trabajo o administrá tus servicios profesionales en un solo lugar.'}
               </p>
             </div>
 
@@ -195,9 +227,11 @@ function LoginPage() {
           {/* Columna Derecha: Tarjeta de Formulario */}
           <section className="login-card" aria-label="Formulario de inicio de sesión">
             <div className="login-card-header">
-              <h1>Iniciar sesión</h1>
+              <h1>{isAdminMode ? 'Acceso Administrador' : isAdminMode ? 'Ingresar como Administrador' : 'Iniciar sesión'}</h1>
               <p>
-                Ingresá tus credenciales para acceder a tu cuenta.
+                {isAdminMode
+                  ? 'Ingresá tus credenciales de administrador para ingresar al panel.'
+                  : 'Ingresá tus credenciales para acceder a tu cuenta.'}
               </p>
             </div>
 
@@ -355,23 +389,37 @@ function LoginPage() {
                     <span>Ingresando...</span>
                   </>
                 ) : (
-                  'Iniciar sesión'
+                  isAdminMode ? 'Ingresar como Administrador' : 'Iniciar sesión'
                 )}
               </button>
 
-              <div className="login-card-footer">
-                <p>
-                  ¿Todavía no tenés una cuenta?{' '}
-                  <Link to="/registro" className="login-link">
-                    Registrate gratis
+              {isAdminMode ? (
+                <div style={{ textAlign: 'center', marginTop: 'var(--space-5)' }}>
+                  <Link to="/login" className="login-link" style={{ fontSize: '0.9rem' }}>
+                    ← Volver al inicio de sesión general
                   </Link>
-                </p>
-
-                <div className="login-provider-cta">
-                  <span>¿Ofrecés un oficio o servicio?</span>
-                  <Link to="/registro-trabajador">Registrate como prestador</Link>
                 </div>
-              </div>
+              ) : (
+                <div className="login-card-footer">
+                  <p>
+                    ¿Todavía no tenés una cuenta?{' '}
+                    <Link to="/registro" className="login-link">
+                      Registrate gratis
+                    </Link>
+                  </p>
+
+                  <div className="login-provider-cta">
+                    <span>¿Ofrecés un oficio o servicio?</span>
+                    <Link to="/registro-trabajador">Registrate como prestador</Link>
+                  </div>
+
+                  <div style={{ marginTop: 'var(--space-4)', textAlign: 'center', fontSize: '0.85rem' }}>
+                    <Link to="/admin/login" style={{ color: 'var(--color-text-muted)' }}>
+                      Acceso Administrador 🔒
+                    </Link>
+                  </div>
+                </div>
+              )}
             </form>
           </section>
         </div>

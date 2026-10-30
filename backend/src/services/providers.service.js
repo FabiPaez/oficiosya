@@ -4,6 +4,7 @@ import {
   updateProviderProfile as updateRepo,
   updateProviderCategories,
   listProviders,
+  deleteProvider as deleteRepo,
 } from '../repositories/providers.repository.js';
 
 import { AppError } from '../utils/AppError.js';
@@ -104,4 +105,26 @@ export async function updateProviderProfileService(
 
 export async function listProvidersService() {
   return await listProviders();
+}
+
+
+export async function deleteProviderService(
+  providerId,
+  supabaseClient,
+  { deleteAccount = false } = {},
+) {
+  const provider = await findProviderById(
+    providerId,
+    supabaseClient,
+  );
+
+  if (!provider) {
+    throw new AppError('Prestador no encontrado', 404);
+  }
+
+  return await deleteRepo(
+    providerId,
+    supabaseClient,
+    { deleteAccount },
+  );
 }

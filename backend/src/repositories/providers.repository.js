@@ -285,3 +285,97 @@ export async function listProviders() {
     categories: categoriesByProvider.get(provider.id) ?? [],
   }));
 }
+
+export async function deleteProvider(
+  providerId,
+  supabaseClient = supabase,
+  { deleteAccount = false } = {},
+) {
+  // Intentar ejecutar el RPC admin_delete_provider
+  const { data, error } = await supabaseClient.rpc(
+    'admin_delete_provider',
+    {
+      p_provider_id: providerId,
+      p_delete_account: deleteAccount,
+    },
+  );
+
+  if (!error) {
+    return data;
+  }
+
+  // Fallback si la función RPC aún no fue creada en la base de datos
+  // 1. Quitar servicios asociados
+  await supabaseClient
+    .from('provider_services')
+    .delete()
+    .eq('provider_id', providerId);
+
+  // 2. Quitar categorías asociadas
+  await supabaseClient
+    .from('provider_categories')
+    .delete()
+    .eq('provider_id', providerId);
+
+  // 3. Quitar de favoritos
+  await supabaseClient
+    .from('favorites')
+    .delete()
+    .eq('provider_id', providerId);
+
+  // 4. Quitar rol PROVIDER de user_roles
+  const { data: providerRole } = await supabaseClient
+    .from('roles')
+    .select('id')
+    .eq('name', 'PROVIDER')
+    .maybeSingle();
+
+  if (providerRole?.id) {
+    await supabaseClient
+      .from('user_roles')
+      .delete()
+      .eq('user_id', providerId)
+      .eq('role_id', providerRole.id);
+  }
+
+  // 5. Limpiar datos de prestador en el perfil
+  await supabaseClient
+    .from('profiles')
+    .update({
+      description: null,
+      coverage: null,
+      experience_years: null,
+      schedule: null,
+      available_days: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', providerId);
+
+  if (deleteAccount) {
+    await supabaseClient
+      .from('service_requests')
+      .delete()
+      .or(`provider_id.eq.${providerId},client_id.eq.${providerId}`);
+
+    await supabaseClient
+      .from('favorites')
+      .delete()
+      .eq('user_id', providerId);
+
+    await supabaseClient
+      .from('user_roles')
+      .delete()
+      .eq('user_id', providerId);
+
+    await supabaseClient
+      .from('profiles')
+      .delete()
+      .eq('id', providerId);
+  }
+
+  return {
+    provider_id: providerId,
+    deleted_account: deleteAccount,
+    message: 'Prestador eliminado exitosamente',
+  };
+}

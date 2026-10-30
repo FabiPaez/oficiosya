@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth'
 
 function Navbar() {
   const navigate = useNavigate()
-  const { isAuthenticated, logoutMock } = useAuth()
+  const { isAuthenticated, user, logoutMock } = useAuth()
+  const isAdmin = user?.roles?.includes('ADMIN') || user?.role === 'ADMIN'
   const [menuOpen, setMenuOpen] = useState(false)
 
   function closeMenu() {
@@ -83,6 +84,19 @@ function Navbar() {
 
           {isAuthenticated && (
             <>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={closeMenu}
+                  style={{
+                    color: 'var(--color-primary)',
+                    fontWeight: 600,
+                  }}
+                >
+                  Administración
+                </Link>
+              )}
+
               <Link to="/mi-perfil" onClick={closeMenu}>
                 Mi perfil
               </Link>
