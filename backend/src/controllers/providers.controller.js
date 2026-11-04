@@ -3,6 +3,7 @@ import {
   getProviderProfile,
   updateProviderProfileService,
   listProvidersService,
+  deleteProviderService,
 } from '../services/providers.service.js';
 
 
@@ -74,6 +75,28 @@ export async function listProvidersController(req, res, next) {
     });
 
 
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+export async function deleteProviderController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const deleteAccount = req.query.delete_account === 'true';
+
+    const result = await deleteProviderService(
+      id,
+      req.supabase,
+      { deleteAccount },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Prestador eliminado correctamente',
+      data: result,
+    });
   } catch (error) {
     next(error);
   }

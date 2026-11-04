@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase, supabaseAdmin } from '../config/supabase.js';
 
 
 export async function findProviderById(
@@ -284,4 +284,114 @@ export async function listProviders() {
     services: servicesByProvider.get(provider.id) ?? [],
     categories: categoriesByProvider.get(provider.id) ?? [],
   }));
+}
+
+export async function deleteProvider(
+  providerId,
+  supabaseClient = supabase,
+  { deleteAccount = false } = {},
+) {
+  const clientToUse = supabaseAdmin || supabaseClient;
+
+  // 1. Intentar ejecutar la RPC admin_delete_provider
+  const { data, error } = await clientToUse.rpc(
+    'admin_delete_provider',
+    {
+      p_provider_id: providerId,
+      p_delete_account: deleteAccount,
+    },
+  );
+
+  if (!error) {
+    return data;
+  }
+
+  console.warn(
+    'admin_delete_provider RPC retornó error. Ejecutando operaciones directas:',
+    error.message,
+  );
+
+  // 2. Fallback de operaciones directas
+  await clientToUse
+    .from('provider_services')
+    .delete()
+    .eq('provider_id', providerId);
+
+  await clientToUse
+    .from('provider_categories')
+    .delete()
+    .eq('provider_id', providerId);
+
+  await clientToUse
+    .from('favorites')
+    .delete()
+    .eq('provider_id', providerId);
+
+  const { data: providerRole } = await clientToUse
+    .from('roles')
+    .select('id')
+    .eq('name', 'PROVIDER')
+    .maybeSingle();
+
+  if (providerRole?.id) {
+    const { error: errRole } = await clientToUse
+      .from('user_roles')
+      .delete()
+      .eq('user_id', providerId)
+      .eq('role_id', providerRole.id);
+
+    if (errRole) {
+      console.error('Error al remover rol de prestador:', errRole);
+      throw new Error(`No se pudo remover el rol de prestador: ${errRole.message}`);
+    }
+  }
+
+  const { error: errProfile } = await clientToUse
+    .from('profiles')
+    .update({
+      description: null,
+      coverage: null,
+      experience_years: null,
+      schedule: null,
+      available_days: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', providerId);
+
+  if (errProfile) {
+    console.error('Error al actualizar el perfil:', errProfile);
+    throw new Error(`No se pudo actualizar el perfil: ${errProfile.message}`);
+  }
+
+  if (deleteAccount) {
+    await clientToUse
+      .from('service_requests')
+      .delete()
+      .or(`provider_id.eq.${providerId},client_id.eq.${providerId}`);
+
+    await clientToUse
+      .from('favorites')
+      .delete()
+      .eq('user_id', providerId);
+
+    await clientToUse
+      .from('user_roles')
+      .delete()
+      .eq('user_id', providerId);
+
+    await clientToUse
+      .from('profiles')
+      .delete()
+      .eq('id', providerId);
+
+    if (clientToUse.auth?.admin?.deleteUser) {
+      await clientToUse.auth.admin.deleteUser(providerId);
+    }
+  }
+
+  return {
+    provider_id: providerId,
+    deleted_account: deleteAccount,
+    message: 'Prestador eliminado exitosamente',
+  };
 }

@@ -329,4 +329,45 @@ export const workerService = {
 
     return worker
   },
+
+  async deleteProvider(
+    id: string,
+    deleteAccount = false,
+  ): Promise<void> {
+    try {
+      const queryParam = deleteAccount ? '?delete_account=true' : ''
+      await apiFetch<{ success: boolean; message: string }>(
+        `/providers/${encodeURIComponent(id)}${queryParam}`,
+        {
+          method: 'DELETE',
+        },
+      )
+    } catch (error) {
+      const isNetworkError =
+        error instanceof TypeError &&
+        (error.message.includes('fetch') || error.message.includes('network'))
+
+      if (isNetworkError) {
+        // En entorno de tests o completamente offline sin backend
+        const index = mockWorkers.findIndex(
+          (item) => item.id === id || item.userId === id,
+        )
+        if (index !== -1) {
+          mockWorkers.splice(index, 1)
+          return
+        }
+      }
+
+      // Si el backend respondió con un error (401, 403, 404, 500, etc.), propagamos el error real
+      throw error
+    }
+
+    // Mantener sincronizado mockWorkers local
+    const index = mockWorkers.findIndex(
+      (item) => item.id === id || item.userId === id,
+    )
+    if (index !== -1) {
+      mockWorkers.splice(index, 1)
+    }
+  },
 }

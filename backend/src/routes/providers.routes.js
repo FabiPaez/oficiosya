@@ -4,9 +4,11 @@ import {
   getProviderProfileController,
   updateProviderProfileController,
   listProvidersController,
+  deleteProviderController,
 } from '../controllers/providers.controller.js';
 
 import { authenticate } from '../middlewares/auth.middleware.js';
+import { authorize } from '../middlewares/authorize.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import {
   registerProviderSchema,
@@ -24,6 +26,9 @@ router.post('/register', authenticate, validate(registerProviderSchema), registe
 // Perfil propio de prestador
 router.get('/me', authenticate, getProviderProfileController);
 router.patch('/me', authenticate, validate(updateProviderProfileSchema), updateProviderProfileController);
+
+// Solo ADMIN: Eliminar / dar de baja a un prestador
+router.delete('/:id', authenticate, authorize('ADMIN'), deleteProviderController);
 
 // Perfil público de cualquier prestador por ID
 router.get('/:id', getProviderProfileController);

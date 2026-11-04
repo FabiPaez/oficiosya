@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import type { UserRole } from '../../types/user'
 
@@ -12,13 +12,20 @@ function ProtectedRoute({
   disallowedRoles,
 }: ProtectedRouteProps) {
   const { user, isAuthenticated, isInitializing } = useAuth()
+  const location = useLocation()
 
   if (isInitializing) {
     return <p>Cargando sesión...</p>
   }
 
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />
+    const isOnlyAdmin =
+      allowedRoles?.length === 1 && allowedRoles[0] === 'ADMIN'
+    const loginTarget = isOnlyAdmin
+      ? '/admin/login'
+      : `/login?redirect=${encodeURIComponent(location.pathname)}`
+
+    return <Navigate to={loginTarget} replace />
   }
 
   const userRoles = user.roles?.length

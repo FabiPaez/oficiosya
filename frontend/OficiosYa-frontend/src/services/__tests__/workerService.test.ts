@@ -97,4 +97,16 @@ describe('workerService', () => {
 
     expect(result).toBeNull()
   })
+
+  it('elimina un prestador del listado', async () => {
+    const workerToDelete = mockWorkers[0]
+    expect(workerToDelete).toBeDefined()
+    if (!workerToDelete) return
+
+    const initialCount = mockWorkers.length
+    await workerService.deleteProvider(workerToDelete.id)
+
+    expect(mockWorkers.length).toBe(initialCount - 1)
+    expect(mockWorkers.some((w) => w.id === workerToDelete.id)).toBe(false)
+  })
 })
