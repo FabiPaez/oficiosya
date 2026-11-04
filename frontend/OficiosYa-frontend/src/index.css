@@ -3715,6 +3715,11 @@ p {
   border-top: 1px solid var(--color-border);
 }
 
+/* =========================
+   Logos
+   ========================= */
+
+
 .navbar-logo {
   display: block;
   width: 10rem;
