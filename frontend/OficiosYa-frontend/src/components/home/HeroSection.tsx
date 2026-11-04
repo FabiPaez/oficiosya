@@ -5,7 +5,17 @@ function HeroSection() {
     <section className="home-hero">
       <div className="container home-hero-content">
         <div className="home-hero-copy">
-          <span className="badge badge-premium">Jáchal, San Juan</span>
+          <div className="hero-brand">
+            <img
+              src="/images/logo-oficiosya.png"
+              alt=""
+              className="hero-logo"
+            />
+
+            <span className="badge badge-premium">
+              Jáchal, San Juan
+            </span>
+          </div>
 
           <h1>Encontrá el profesional que necesitás</h1>
 

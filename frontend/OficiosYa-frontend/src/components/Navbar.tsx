@@ -32,7 +32,11 @@ function Navbar() {
             })
           }}
         >
-          OficiosYa
+          <img
+            src="/images/logo-oficiosya.png"
+            alt="OficiosYa"
+            className="navbar-logo"
+          />
         </Link>
 
 
