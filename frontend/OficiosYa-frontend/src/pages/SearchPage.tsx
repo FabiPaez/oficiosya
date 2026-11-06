@@ -175,6 +175,7 @@ function SearchPage() {
           filters={filters}
           categories={categories}
           onChange={handleFiltersChange}
+          onClear={handleClearFilters} 
         />
 
         <section
