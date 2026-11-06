@@ -38,45 +38,45 @@ function SearchPage() {
   const initializedFromUrl = useRef(false)
 
   useEffect(() => {
-    async function initializeSearch() {
-      try {
-        const result = await categoryService.getAll()
+  async function initializeSearch() {
+    try {
+      const result = await categoryService.getAll()
 
-        setCategories(result)
+      setCategories(result)
 
-        const query = searchParams.get('q') ?? ''
-        const categoryId =
-          searchParams.get('categoria') ?? undefined
-        const zone =
-          searchParams.get('zona') ?? undefined
+      const query = searchParams.get('q') ?? ''
+      const categoryId =
+        searchParams.get('categoria') ?? undefined
+      const zone =
+        searchParams.get('zona') ?? undefined
 
-        const validCategoryId =
-          categoryId &&
-            result.some(
-              (category) => category.id === categoryId,
-            )
-            ? categoryId
-            : undefined
+      const validCategoryId =
+        categoryId &&
+        result.some(
+          (category) => category.id === categoryId,
+        )
+          ? categoryId
+          : undefined
 
-        const validZone =
-          zone && VALID_ZONES.includes(zone)
-            ? zone
-            : undefined
+      const validZone =
+        zone && VALID_ZONES.includes(zone)
+          ? zone
+          : undefined
 
-        setFilters({
-          query,
-          categoryId: validCategoryId,
-          zone: validZone,
-        })
+      setFilters({
+        query,
+        categoryId: validCategoryId,
+        zone: validZone,
+      })
 
-        initializedFromUrl.current = true
-      } catch {
-        setError(true)
-      }
+      initializedFromUrl.current = true
+    } catch {
+      setError(true)
     }
+  }
 
-    void initializeSearch()
-  }, [searchParams])
+  void initializeSearch()
+}, [])
 
   useEffect(() => {
     if (!initializedFromUrl.current) {
